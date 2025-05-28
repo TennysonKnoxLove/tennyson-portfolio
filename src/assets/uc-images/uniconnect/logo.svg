@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+  <style>
+    .logo-text { font-family: Arial, sans-serif; font-weight: bold; }
+    .logo-bg { fill: #3498db; }
+    .logo-book { fill: #ffffff; }
+  </style>
+  <circle class="logo-bg" cx="25" cy="25" r="23"/>
+  <text x="25" y="30" text-anchor="middle" class="logo-text" fill="#ffffff" font-size="16">UC</text>
+  <path class="logo-book" d="M33 18 L17 18 L17 32 L33 32 L33 18 Z M20 20 L30 20 L30 30 L20 30 L20 20 Z" opacity="0.8"/>
+</svg> 

@@ -1,0 +1,179 @@
+<div class="resource-listing-container">
+  <div class="listing-header">
+    <h1>Browse Resources</h1>
+    <a routerLink="/projects/university-connect" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Back to University Connect
+    </a>
+  </div>
+  
+  <div class="search-filters-section">
+    <div class="search-box">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search resources</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by description...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    
+    <div class="filters-container">
+      <div class="filters-header">
+        <h2>Filters</h2>
+        <button mat-icon-button (click)="clearFilters()">
+          <mat-icon>refresh</mat-icon> Reset
+        </button>
+      </div>
+      
+      <form [formGroup]="filterForm">
+        <h3>Categories</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Select category</mat-label>
+          <mat-select formControlName="category">
+            <mat-option value="">All Categories</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category.value">
+              {{ category.display }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <h3>Price Range</h3>
+        <div class="price-range">
+          <span>${{ filterForm.value.priceMin || 0 }}</span>
+          <mat-slider class="price-slider" min="0" max="100" step="5">
+            <input matSliderStartThumb formControlName="priceMin">
+            <input matSliderEndThumb formControlName="priceMax">
+          </mat-slider>
+          <span>${{ filterForm.value.priceMax || 100 }}</span>
+        </div>
+        
+        <h3>Date/Time Availability</h3>
+        <div class="date-range">
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="availabilityFrom">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="availabilityTo">
+            <mat-hint>MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        
+        <h3>Tags</h3>
+        <div class="tag-chips">
+          <mat-chip-set>
+            <mat-chip 
+              *ngFor="let tag of availableTags"
+              [class.selected]="isTagSelected(tag)"
+              (click)="toggleTag(tag)">
+              {{ tag }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+        
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" (click)="applyFilters()">Apply Filters</button>
+          <button mat-button (click)="clearFilters()">Clear All</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="results-section">
+    <div class="results-header">
+      <div class="results-count">
+        <p>Showing {{ (facade.filteredResources$ | async)?.length || 0 }} resources</p>
+      </div>
+      <div class="view-options">
+        <button mat-icon-button (click)="toggleDisplayMode()" [matTooltip]="displayMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'">
+          <mat-icon>{{ displayMode === 'grid' ? 'view_list' : 'grid_view' }}</mat-icon>
+        </button>
+        
+        <mat-form-field appearance="outline" class="sort-field">
+          <mat-label>Sort By</mat-label>
+          <mat-select>
+            <mat-option value="newest">Newest</mat-option>
+            <mat-option value="price_low">Price: Low to High</mat-option>
+            <mat-option value="price_high">Price: High to Low</mat-option>
+            <mat-option value="name">Name</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+    
+    <div class="resources-loading" *ngIf="facade.isLoading$ | async">
+      <p>Loading resources...</p>
+    </div>
+    
+    <div class="resources-error" *ngIf="facade.error$ | async">
+      <p>Error loading resources. Please try again later.</p>
+    </div>
+    
+    <div class="no-results" *ngIf="(facade.filteredResources$ | async)?.length === 0 && !(facade.isLoading$ | async)">
+      <p>No resources found matching your criteria.</p>
+      <button mat-button color="primary" (click)="clearFilters()">Clear Filters</button>
+    </div>
+    
+    <!-- Grid View -->
+    <div class="resources-grid" *ngIf="displayMode === 'grid' && (facade.filteredResources$ | async)?.length">
+      <mat-card class="resource-card" *ngFor="let resource of (facade.filteredResources$ | async)">
+        <img mat-card-image [src]="resource.image" [alt]="resource.name">
+        <mat-card-content>
+          <h3>{{ resource.name }}</h3>
+          <p>{{ resource.description }}</p>
+          <div class="resource-meta">
+            <span class="price">${{ resource.price.toFixed(2) }}</span>
+            <span class="location">{{ resource.location.city }}, {{ resource.location.state }}</span>
+          </div>
+          <div class="resource-tags">
+            <mat-chip-set>
+              <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
+                {{ tag }}
+              </mat-chip>
+              <mat-chip *ngIf="resource.tags.length > 3">+{{ resource.tags.length - 3 }}</mat-chip>
+            </mat-chip-set>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary">View Details</button>
+          <button mat-stroked-button color="primary">Check Availability</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+    
+    <!-- List View -->
+    <div class="resources-list" *ngIf="displayMode === 'list' && (facade.filteredResources$ | async)?.length">
+      <mat-card class="resource-list-item" *ngFor="let resource of (facade.filteredResources$ | async)">
+        <div class="list-item-image">
+          <img [src]="resource.image" [alt]="resource.name">
+        </div>
+        <div class="list-item-content">
+          <h3>{{ resource.name }}</h3>
+          <p>{{ resource.description }}</p>
+          <div class="resource-meta">
+            <span class="price">${{ resource.price.toFixed(2) }}</span>
+            <span class="location">{{ resource.location.city }}, {{ resource.location.state }}</span>
+            <span class="category">{{ resource.category }}</span>
+          </div>
+          <div class="resource-tags">
+            <mat-chip-set>
+              <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
+                {{ tag }}
+              </mat-chip>
+              <mat-chip *ngIf="resource.tags.length > 3">+{{ resource.tags.length - 3 }}</mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+        <div class="list-item-actions">
+          <button mat-button color="primary">View Details</button>
+          <button mat-stroked-button color="primary">Check Availability</button>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div> 

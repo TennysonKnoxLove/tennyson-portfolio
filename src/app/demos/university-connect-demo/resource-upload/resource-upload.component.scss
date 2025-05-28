@@ -1,0 +1,250 @@
+.resource-upload-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Roboto', sans-serif;
+}
+
+.upload-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 2rem;
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .back-link {
+    display: flex;
+    align-items: center;
+    color: #3498db;
+    text-decoration: none;
+    
+    mat-icon {
+      margin-right: 0.5rem;
+    }
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.step-content {
+  padding: 1.5rem 0;
+  
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem;
+    color: #2c3e50;
+  }
+  
+  .step-description {
+    color: #777;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.tags-section {
+  margin: 1.5rem 0;
+  
+  h3 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+    color: #666;
+  }
+  
+  p {
+    color: #666;
+    margin-bottom: 1rem;
+  }
+  
+  .tag-input {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
+    .tag-field {
+      flex: 1;
+    }
+  }
+  
+  .tags-list {
+    margin-top: 1rem;
+  }
+}
+
+.step-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  
+  .upload-card {
+    width: 100%;
+    max-width: 400px;
+    height: 250px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    
+    &.has-image {
+      border-style: solid;
+    }
+    
+    .upload-placeholder {
+      text-align: center;
+      color: #777;
+      
+      mat-icon {
+        font-size: 3rem;
+        height: 3rem;
+        width: 3rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+
+    
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+    }
+    
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+  }
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.availability-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.review-card {
+  margin: 1rem 0 2rem;
+  
+  .review-section {
+    margin-bottom: 1.5rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin: 0 0 0.5rem;
+      color: #2c3e50;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    
+    p {
+      margin: 0.5rem 0;
+    }
+    
+    .review-image {
+      max-width: 100%;
+      max-height: 200px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+  }
+}
+
+.publish-buttons {
+  button {
+    min-width: 150px;
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .upload-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Simple #666 color styling that actually works!
+.field-label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+// Description textarea
+textarea {
+  color: #666;
+}
+
+// Global image constraints to prevent massive images
+img {
+  max-width: 100%;
+  height: auto;
+  
+  // Specific constraint for very large images
+  &[src^="data:image"] {
+    max-height: 400px;
+    object-fit: contain;
+    object-position: center;
+  }
+} 
+
+

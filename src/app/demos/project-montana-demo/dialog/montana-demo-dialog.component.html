@@ -1,0 +1,158 @@
+<div class="montana-dialog-container" [class.fullscreen]="isFullscreen | async">
+  <!-- Header -->
+  <div class="montana-header">
+    <div class="header-left">
+      <div class="logo-container">
+        <mat-icon class="logo-icon">terminal</mat-icon>
+        <h2>Project Montana - Live Demo</h2>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <!-- Container Status -->
+      <div class="status-indicator">
+        <mat-icon [class.running]="dockerRunning | async">{{ (dockerRunning | async) ? 'play_circle' : 'stop_circle' }}</mat-icon>
+        <span>{{ runningContainerCount | async }}/3 Running</span>
+      </div>
+      
+      <!-- Fullscreen Toggle -->
+      <button mat-icon-button class="header-button" (click)="toggleFullscreen()">
+        <mat-icon>{{ (isFullscreen | async) ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+      
+      <!-- Close Button -->
+      <button mat-icon-button class="header-button close-button" (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="montana-nav">
+    <button 
+      class="nav-tab" 
+      [class.active]="(currentView | async) === MontanaView.TERMINAL"
+      (click)="switchView(MontanaView.TERMINAL)">
+      <mat-icon>terminal</mat-icon>
+      <span>Docker Terminal</span>
+    </button>
+    
+    <button 
+      class="nav-tab" 
+      [class.active]="(currentView | async) === MontanaView.APPLICATION"
+      [disabled]="!(isApplicationReady | async)"
+      (click)="switchView(MontanaView.APPLICATION)">
+      <mat-icon>web</mat-icon>
+      <span>Live Application</span>
+      <mat-icon class="ready-indicator" *ngIf="isApplicationReady | async">check_circle</mat-icon>
+    </button>
+  </div>
+
+  <!-- Content Area -->
+  <div class="montana-content">
+    <!-- Terminal View -->
+    <div class="terminal-view" *ngIf="(currentView | async) === MontanaView.TERMINAL">
+      <!-- Container Status Cards -->
+      <div class="containers-status" *ngIf="(dockerContainers | async)?.length">
+        <h3>🐳 Container Status</h3>
+        <div class="container-grid">
+          <div *ngFor="let container of (dockerContainers | async)" class="container-card">
+            <div class="container-info">
+              <div class="container-header">
+                <h4>{{ container.name }}</h4>
+                <div class="status-badge" [ngClass]="container.status">
+                  <span class="status-dot"></span>
+                  <span>{{ container.status | titlecase }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="container-ports">
+              <span *ngFor="let port of container.ports" class="port-badge">{{ port }}</span>
+            </div>
+            <div class="container-uptime" *ngIf="container.uptime">{{ container.uptime }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="terminal">
+        <div class="terminal-header">
+          <span>🏔️ Project Montana Docker Terminal</span>
+          <div class="terminal-actions">
+            <button mat-icon-button (click)="montanaFacade.clearTerminal()" 
+                    title="Clear terminal">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </div>
+        </div>
+        
+        <div class="terminal-output">
+          <div *ngFor="let line of (terminalOutput | async)" class="terminal-line">{{ line }}</div>
+          <div *ngIf="isExecutingCommand | async" class="terminal-line loading">
+            <mat-spinner diameter="16"></mat-spinner>
+            <span>Executing command...</span>
+          </div>
+        </div>
+        
+        <div class="terminal-input">
+          <span class="prompt">$ </span>
+          <input 
+            type="text" 
+            [(ngModel)]="terminalInput" 
+            (keydown.enter)="executeDockerCommand()"
+            [disabled]="(isExecutingCommand | async) ?? false"
+            placeholder="Type 'docker-compose up' to start the real Project Montana app..."
+            #terminalInputElement>
+        </div>
+      </div>
+      
+      <!-- Help Section -->
+      <div class="help-section">
+        <h3>💡 Getting Started</h3>
+        <ul>
+          <li>Type <code>docker-compose up</code> to start the real Project Montana application</li>
+          <li>This will build and run actual Docker containers with a full-stack app</li>
+          <li>Once running, switch to the "Live Application" tab to interact with the real app</li>
+          <li>Use <code>docker ps</code> to check container status</li>
+          <li>Use <code>docker-compose down</code> to stop all containers</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Application View -->
+    <div class="application-view" *ngIf="(currentView | async) === MontanaView.APPLICATION">
+     
+      
+      <div class="app-container">
+        <iframe 
+          *ngIf="applicationUrl | async" 
+          [src]="applicationUrl | async" 
+          class="app-frame"
+          title="Project Montana Application">
+        </iframe>
+        
+        <div *ngIf="!(applicationUrl | async)" class="app-loading">
+          <mat-spinner></mat-spinner>
+          <p>Waiting for application to be ready...</p>
+          <small>This may take a few minutes while containers start up</small>
+          
+          <button mat-raised-button color="primary" (click)="switchView(MontanaView.TERMINAL)" style="margin-top: 20px;">
+            <mat-icon>terminal</mat-icon>
+            Back to Terminal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="montana-footer">
+    <span>🏔️ Project Montana Live Demo - Running Real Docker Containers</span>
+    <div class="footer-actions">
+      <button mat-button color="warn" (click)="stopDockerContainers()" *ngIf="dockerRunning | async">
+        <mat-icon>stop</mat-icon>
+        Stop All Containers
+      </button>
+    </div>
+  </div>
+</div> 
