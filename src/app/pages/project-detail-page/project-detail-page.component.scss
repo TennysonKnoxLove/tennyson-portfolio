@@ -58,19 +58,6 @@
   }
 }
 
-.project-image-container {
-  margin-bottom: 2rem;
-  border-radius: 8px;
-  overflow: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  
-  .project-image {
-    width: 100%;
-    max-height: 500px;
-    object-fit: cover;
-  }
-}
-
 .project-info {
   h2 {
     font-size: 1.5rem;
@@ -118,9 +105,68 @@
   gap: 1rem;
   margin-top: 2rem;
   
-  a {
+  a, button {
     display: flex;
     align-items: center;
+    padding: 0.75rem 2rem !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    min-height: 44px;
+    cursor: pointer;
+    
+    &:first-child {
+      background: linear-gradient(135deg, #00c2ff, #0099cc) !important;
+      color: white !important;
+      box-shadow: 
+        0 8px 25px rgba(0, 194, 255, 0.3),
+        0 0 0 1px rgba(0, 194, 255, 0.2);
+      
+      &:hover {
+        background: linear-gradient(135deg, #00d4ff, #00a6d6) !important;
+        transform: translateY(-2px);
+        box-shadow: 
+          0 12px 35px rgba(0, 194, 255, 0.4),
+          0 0 0 1px rgba(0, 194, 255, 0.3);
+      }
+    }
+    
+    &:last-child {
+      background: linear-gradient(135deg, #ff00e6, #cc0099) !important;
+      color: white !important;
+      box-shadow: 
+        0 8px 25px rgba(255, 0, 230, 0.3),
+        0 0 0 1px rgba(255, 0, 230, 0.2);
+      
+      &:hover {
+        background: linear-gradient(135deg, #ff1aef, #d600a6) !important;
+        transform: translateY(-2px);
+        box-shadow: 
+          0 12px 35px rgba(255, 0, 230, 0.4),
+          0 0 0 1px rgba(255, 0, 230, 0.3);
+      }
+    }
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    &:hover::before {
+      left: 100%;
+    }
     
     mat-icon {
       margin-right: 0.5rem;

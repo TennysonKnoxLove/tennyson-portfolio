@@ -15,12 +15,12 @@ import { PortfolioEffects } from './store/portfolio/portfolio.effects';
 import { universityConnectReducer } from './demos/university-connect-demo/store/university-connect.reducer';
 import { UniversityConnectEffects } from './demos/university-connect-demo/store/university-connect.effects';
 import { UniversityConnectModule } from './demos/university-connect-demo/university-connect.module';
-import { DenwaDemoModule } from './demos/denwa-demo/denwa-demo.module';
-import { denwaReducer } from './demos/denwa-demo/store/denwa.reducer';
-import { DenwaEffects } from './demos/denwa-demo/store/denwa.effects';
-import { MontanaDemoModule } from './demos/project-montana-demo/montana-demo.module';
-import { montanaReducer } from './demos/project-montana-demo/store/montana.reducer';
-import { MontanaEffects } from './demos/project-montana-demo/store/montana.effects';
+import { corpDemoModule } from './demos/corp-demo/corp-demo.module';
+import { corpReducer } from './demos/corp-demo/store/corp.reducer';
+import { corpEffects } from './demos/corp-demo/store/corp.effects';
+import { CaliforniaDemoModule } from './demos/project-california-demo/california-demo.module';
+import { CaliforniaReducer } from './demos/project-california-demo/store/california.reducer';
+import { CaliforniaEffects } from './demos/project-california-demo/store/california.effects';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
@@ -33,12 +33,12 @@ export const appConfig: ApplicationConfig = {
       resource: resourceReducer,
       portfolio: portfolioReducer,
       universityConnect: universityConnectReducer,
-      denwa: denwaReducer,
-      montana: montanaReducer
+      corp: corpReducer,
+      california: CaliforniaReducer
     }),
-    provideEffects(ResourceEffects, PortfolioEffects, UniversityConnectEffects, DenwaEffects, MontanaEffects),
+    provideEffects(ResourceEffects, PortfolioEffects, UniversityConnectEffects, corpEffects, CaliforniaEffects),
     provideStoreDevtools({ maxAge: 25, logOnly: false }),
     provideAnimations(),
-    importProvidersFrom(UniversityConnectModule, DenwaDemoModule, MontanaDemoModule, MatSnackBarModule)
+    importProvidersFrom(UniversityConnectModule, corpDemoModule, CaliforniaDemoModule, MatSnackBarModule)
   ]
 };

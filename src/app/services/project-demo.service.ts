@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../types/project.types';
 import { UniversityConnectDialogService } from '../demos/university-connect-demo/uc-services/university-connect-dialog.service';
-import { DenwaDemoDialogService } from '../demos/denwa-demo/service/denwa-demo-dialog.service';
-import { MontanaDemoDialogService } from '../demos/project-montana-demo/service/montana-demo-dialog.service';
+import { corpDemoDialogService } from '../demos/corp-demo/service/corp-demo-dialog.service';
+import { CaliforniaDemoDialogService } from '../demos/project-california-demo/service/california-demo-dialog.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +10,8 @@ import { MontanaDemoDialogService } from '../demos/project-montana-demo/service/
 export class ProjectDemoService {
   constructor(
     private universityConnectDialog: UniversityConnectDialogService,
-    private denwaDemoDialog: DenwaDemoDialogService,
-    private montanaDemoDialog: MontanaDemoDialogService
+    private corpDemoDialog: corpDemoDialogService,
+    private CaliforniaDemoDialog: CaliforniaDemoDialogService
   ) {}
 
   /**
@@ -26,11 +26,11 @@ export class ProjectDemoService {
       case 'university-connect':
         this.universityConnectDialog.openUniversityConnectDemo();
         break;
-      case 'denwa':
-        this.denwaDemoDialog.openDenwaDemo();
+      case 'corp.io':
+        this.corpDemoDialog.opencorpDemo();
         break;
-      case 'project-montana':
-        this.montanaDemoDialog.openMontanaDemo();
+      case 'project-California':
+        this.CaliforniaDemoDialog.openCaliforniaDemo();
         break;
       default:
         if (project.demoUrl) {

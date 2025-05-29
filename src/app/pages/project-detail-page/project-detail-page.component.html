@@ -23,16 +23,11 @@
         </div>
       </div>
 
-      <!-- Project image -->
-      <div class="project-image-container">
-        <img [src]="currentProject.imageUrl" [alt]="currentProject.title" class="project-image">
-      </div>
-
       <!-- Project details -->
       <div class="project-info">
         <div class="project-description">
           <h2>Overview</h2>
-          <p>{{ currentProject.description }}</p>
+          <p [innerHTML]="currentProject.description"></p>
         </div>
 
         <div class="project-impacts" *ngIf="currentProject.impacts && currentProject.impacts.length > 0">

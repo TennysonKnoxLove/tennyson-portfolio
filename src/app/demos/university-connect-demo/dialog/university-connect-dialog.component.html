@@ -437,91 +437,141 @@
             <div class="availability-days">
               <div class="day-item">
                 <label class="day-label">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" checked disabled>
                   Monday
                 </label>
                 <div class="time-inputs">
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.monday || '09:00'"
-                    (input)="updateResourceFormField('monday', $any($event.target).value)">
+                    disabled
+                    readonly>
                   <span class="time-separator">to</span>
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.mondayEnd || '17:00'"
-                    (input)="updateResourceFormField('mondayEnd', $any($event.target).value)">
+                    disabled
+                    readonly>
                 </div>
               </div>
               
               <div class="day-item">
                 <label class="day-label">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" checked disabled>
                   Tuesday
                 </label>
                 <div class="time-inputs">
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.tuesday || '09:00'"
-                    (input)="updateResourceFormField('tuesday', $any($event.target).value)">
+                    disabled
+                    readonly>
                   <span class="time-separator">to</span>
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.tuesdayEnd || '17:00'"
-                    (input)="updateResourceFormField('tuesdayEnd', $any($event.target).value)">
+                    disabled
+                    readonly>
                 </div>
               </div>
               
               <div class="day-item">
                 <label class="day-label">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" checked disabled>
                   Wednesday
                 </label>
                 <div class="time-inputs">
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.wednesday || '09:00'"
-                    (input)="updateResourceFormField('wednesday', $any($event.target).value)">
+                    disabled
+                    readonly>
                   <span class="time-separator">to</span>
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.wednesdayEnd || '17:00'"
-                    (input)="updateResourceFormField('wednesdayEnd', $any($event.target).value)">
+                    disabled
+                    readonly>
                 </div>
               </div>
               
               <div class="day-item">
                 <label class="day-label">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" checked disabled>
                   Thursday
                 </label>
                 <div class="time-inputs">
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.thursday || '09:00'"
-                    (input)="updateResourceFormField('thursday', $any($event.target).value)">
+                    disabled
+                    readonly>
                   <span class="time-separator">to</span>
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.thursdayEnd || '17:00'"
-                    (input)="updateResourceFormField('thursdayEnd', $any($event.target).value)">
+                    disabled
+                    readonly>
                 </div>
               </div>
               
               <div class="day-item">
                 <label class="day-label">
-                  <input type="checkbox" checked>
+                  <input type="checkbox" checked disabled>
                   Friday
                 </label>
                 <div class="time-inputs">
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.friday || '09:00'"
-                    (input)="updateResourceFormField('friday', $any($event.target).value)">
+                    disabled
+                    readonly>
                   <span class="time-separator">to</span>
                   <input 
                     type="time" 
                     [value]="(resourceForm | async)?.fridayEnd || '17:00'"
-                    (input)="updateResourceFormField('fridayEnd', $any($event.target).value)">
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Saturday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.saturday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.saturdayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Sunday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.sunday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.sundayEnd || '17:00'"
+                    disabled
+                    readonly>
                 </div>
               </div>
             </div>
@@ -714,20 +764,20 @@
           <h4>Payment Information</h4>
           <div class="form-group">
             <label>Cardholder Name</label>
-            <input type="text" class="payment-input" placeholder="John Doe">
+            <input type="text" class="payment-input" placeholder="John Doe" disabled>
           </div>
           <div class="form-group">
             <label>Card Number</label>
-            <input type="text" class="payment-input" placeholder="1234 5678 9012 3456">
+            <input type="text" class="payment-input" placeholder="1234 5678 9012 3456" disabled>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Expiry Date</label>
-              <input type="text" class="payment-input" placeholder="MM/YY">
+              <input type="text" class="payment-input" placeholder="MM/YY" disabled>
             </div>
             <div class="form-group">
               <label>CVV</label>
-              <input type="text" class="payment-input" placeholder="123">
+              <input type="text" class="payment-input" placeholder="123" disabled>
             </div>
           </div>
         </div>

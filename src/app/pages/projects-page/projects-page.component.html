@@ -15,27 +15,6 @@
     <p>Error loading projects. Please try again later.</p>
   </div>
 
-  <!-- Category filters -->
-  <div class="filter-container" *ngIf="!(isLoading$ | async) && !(error$ | async)">
-    <div class="filter-label">Filter by:</div>
-    <div class="category-chips">
-      <mat-chip-option 
-        [selected]="(selectedCategory$ | async) === 'all'"
-        (click)="filterByCategory('all')"
-        color="primary">
-        All
-      </mat-chip-option>
-      
-      <mat-chip-option 
-        *ngFor="let category of categories" 
-        [selected]="(selectedCategory$ | async) === category.value"
-        (click)="filterByCategory(category.value)"
-        color="primary">
-        {{ category.label }}
-      </mat-chip-option>
-    </div>
-  </div>
-
   <!-- Projects grid -->
   <div class="projects-grid" *ngIf="!(isLoading$ | async) && !(error$ | async)">
     <mat-card class="project-card" *ngFor="let project of (projects$ | async)">
@@ -51,7 +30,7 @@
       <img mat-card-image [src]="project.imageUrl" [alt]="project.title">
       
       <mat-card-content>
-        <p>{{ project.description }}</p>
+        <p [innerHTML]="project.description"></p>
         
         <h3 class="impact-heading">Key Impacts:</h3>
         <ul class="impact-list">
@@ -72,6 +51,6 @@
 
   <!-- No results message -->
   <div class="no-results" *ngIf="!(isLoading$ | async) && !(error$ | async) && (projects$ | async)?.length === 0">
-    <p>No projects found matching the selected filter.</p>
+    <p>No projects found.</p>
   </div>
 </div>

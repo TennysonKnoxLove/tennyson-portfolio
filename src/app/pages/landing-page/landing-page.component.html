@@ -114,7 +114,7 @@
           <img mat-card-image [src]="project.imageUrl" [alt]="project.title">
           
           <mat-card-content>
-            <p>{{ project.description }}</p>
+            <p [innerHTML]="project.description"></p>
             
             <div class="tech-stack-chips">
               <span class="tech-chip" *ngFor="let tech of project.techStack.slice(0, 3)">{{ tech }}</span>

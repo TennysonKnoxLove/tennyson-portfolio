@@ -21,11 +21,11 @@ export class LandingPageService {
     return [
       { name: 'TypeScript', icon: 'typescript-icon', percentage: 25 },
       { name: 'Angular', icon: 'angular-icon', percentage: 20 },
-      { name: 'Material UI', icon: 'material-ui-icon', percentage: 18 },
-      { name: 'Python', icon: 'python-icon', percentage: 15 },
-      { name: 'Prisma', icon: 'prisma-icon', percentage: 12 },
-      { name: 'Docker', icon: 'docker-icon', percentage: 6 },
-      { name: 'Vite', icon: 'vite-icon', percentage: 4 },
+      { name: 'NgRx', icon: 'ngrx-icon', percentage: 15 },
+      { name: 'Material UI', icon: 'material-ui-icon', percentage: 14 },
+      { name: 'Python', icon: 'python-icon', percentage: 13 },
+      { name: 'FastAPI', icon: 'fastapi-icon', percentage: 8 },
+      { name: 'Prisma', icon: 'prisma-icon', percentage: 5 },
     ];
   }
 
