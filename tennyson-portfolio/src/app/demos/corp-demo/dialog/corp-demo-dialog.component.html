@@ -1,0 +1,418 @@
+<div class="corp-dialog-container" [class.fullscreen]="(viewModel$ | async)?.isFullscreen">
+  <!-- Header -->
+  <div class="corp-header">
+    <div class="logo-container">
+      <div class="corp-logo">
+        <div class="logo-icon">📱</div>
+      </div>
+      <h2>corp.io</h2>
+      <div class="org-breadcrumb">
+        <span class="breadcrumb-link">Organizations</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">corp-test</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button class="fullscreen-button" (click)="toggleFullscreen()">
+        <mat-icon>{{ (viewModel$ | async)?.isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+      <button mat-icon-button class="close-button" (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="corp-content">
+    <!-- Sidebar -->
+    <div class="corp-sidebar">
+      <div class="sidebar-section">
+        <div class="section-header">
+          <mat-icon>inbox</mat-icon>
+          <span>BOX SELECTION</span>
+        </div>
+        <mat-select [value]="(viewModel$ | async)?.selectedBox" (selectionChange)="onBoxSelectionChange($event.value)" placeholder="Select a box" class="box-select">
+          <mat-option *ngFor="let box of boxes$ | async" [value]="box.id">{{ box.name }}</mat-option>
+        </mat-select>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-header">
+          <mat-icon>layers</mat-icon>
+          <span>SLOT SELECTION</span>
+        </div>
+        <mat-select [value]="(viewModel$ | async)?.selectedSlot" (selectionChange)="onSlotSelectionChange($event.value)" placeholder="Select a box first" class="slot-select" [disabled]="!(viewModel$ | async)?.selectedBox">
+          <mat-option value="slot1">Select a box first</mat-option>
+        </mat-select>
+      </div>
+
+      <div class="sidebar-section tools-section">
+        <div class="section-header">
+          <mat-icon>build</mat-icon>
+          <span>TOOLS</span>
+        </div>
+        <button class="tool-button">
+          <mat-icon>settings</mat-icon>
+          <span>Configure Slots</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="corp-main">
+      <div class="org-title">
+        <h1>corp-test</h1>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="corp-tabs">
+        <button 
+          class="tab-button" 
+          [class.active]="(viewModel$ | async)?.currentView === corpView.MESSAGE_LOG"
+          (click)="switchView(corpView.MESSAGE_LOG)">
+          <mat-icon>message</mat-icon>
+          Message Log
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="(viewModel$ | async)?.currentView === corpView.INFORMATION"
+          (click)="switchView(corpView.INFORMATION)">
+          <mat-icon>info</mat-icon>
+          Information
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="(viewModel$ | async)?.currentView === corpView.WEBHOOKS"
+          (click)="switchView(corpView.WEBHOOKS)">
+          <mat-icon>webhook</mat-icon>
+          Webhooks
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="(viewModel$ | async)?.currentView === corpView.SMS"
+          (click)="switchView(corpView.SMS)">
+          <mat-icon>sms</mat-icon>
+          SMS
+        </button>
+      </div>
+
+      <!-- SMS View -->
+      <div class="tab-content" *ngIf="(viewModel$ | async)?.currentView === corpView.SMS">
+        <div class="sms-container">
+          <h2>📱 Send SMS (Demo)</h2>
+          <p class="description">🎭 This is a UI demo - no actual SMS messages will be sent.</p>
+
+          <!-- Box Selection Warning -->
+          <div class="warning-message" *ngIf="!(viewModel$ | async)?.selectedBox">
+            <mat-icon>info</mat-icon>
+            <div>
+              <strong>Box Selection Required</strong>
+              <p>Please select a box from the sidebar before sending an SMS.</p>
+            </div>
+          </div>
+
+          <!-- SMS Form -->
+          <div class="sms-form">
+            <div class="form-group">
+              <label for="phoneNumber">📱 Phone Number</label>
+              <input 
+                type="text" 
+                id="phoneNumber"
+                [(ngModel)]="smsForm.phoneNumber"
+                placeholder="Enter phone number or select below"
+                [disabled]="!(viewModel$ | async)?.selectedBox">
+              <small class="help-text">Please select a box from the sidebar first</small>
+            </div>
+
+            <div class="form-group">
+              <label for="toNumber">📞 To Number</label>
+              <input 
+                type="text" 
+                id="toNumber"
+                [(ngModel)]="smsForm.toNumber"
+                placeholder="Enter recipient phone number"
+                disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea 
+                id="message"
+                [(ngModel)]="smsForm.message"
+                placeholder="Enter your message"
+                rows="4"></textarea>
+              <div class="character-count">{{ characterCount }}/{{ maxCharacters }} characters</div>
+            </div>
+
+            <button 
+              class="send-button" 
+              (click)="sendSMS()"
+              [disabled]="!(viewModel$ | async)?.selectedBox || !smsForm.toNumber || !smsForm.message || (isSendingSMS$ | async)">
+              <mat-icon>{{ (isSendingSMS$ | async) ? 'hourglass_empty' : 'send' }}</mat-icon>
+              {{ (isSendingSMS$ | async) ? 'Sending...' : 'Send SMS (Demo)' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Log View -->
+      <div class="tab-content" *ngIf="(viewModel$ | async)?.currentView === corpView.MESSAGE_LOG">
+        <div class="message-log-container">
+          <!-- Filters -->
+          <div class="filters-section">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" [value]="currentStartDate" (change)="onStartDateChange($event)" placeholder="Select start date">
+              </div>
+              <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" [value]="currentEndDate" (change)="onEndDateChange($event)" placeholder="Select end date">
+              </div>
+              <div class="filter-group">
+                <label>From Number</label>
+                <input type="text" [value]="currentFromNumber" (input)="onFromNumberChange($event)" placeholder="Enter phone number">
+              </div>
+              <div class="filter-group">
+                <label>To Number</label>
+                <input type="text" [value]="currentToNumber" (input)="onToNumberChange($event)" placeholder="Enter phone number">
+              </div>
+            </div>
+            <button class="export-button" (click)="exportToCSV()">
+              <mat-icon>download</mat-icon>
+              Export to CSV (Demo)
+            </button>
+          </div>
+
+          <!-- Message Table -->
+          <div class="message-table">
+            <div class="table-header">
+              <div class="col-timestamp">Timestamp</div>
+              <div class="col-from">From</div>
+              <div class="col-to">To</div>
+              <div class="col-modem">Modem ID</div>
+              <div class="col-message">Message</div>
+            </div>
+            <div class="table-body">
+              <div class="table-row" *ngFor="let log of filteredMessageLogs$ | async">
+                <div class="col-timestamp">{{ log.timestamp }}</div>
+                <div class="col-from">{{ log.from }}</div>
+                <div class="col-to">{{ log.to }}</div>
+                <div class="col-modem">{{ log.modemId }}</div>
+                <div class="col-message">{{ log.message }}</div>
+              </div>
+            </div>
+            <div class="table-footer">
+              <span>1-6 of 6 items</span>
+              <div class="pagination">
+                <button class="page-button active">1</button>
+                <span class="items-per-page">10 / page</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information View -->
+      <div class="tab-content" *ngIf="(viewModel$ | async)?.currentView === corpView.INFORMATION">
+        <div class="information-container">
+          <div class="info-item">
+            <label>Relay Email</label>
+            <span>{{ (viewModel$ | async)?.relayEmail }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Webhooks View -->
+      <div class="tab-content" *ngIf="(viewModel$ | async)?.currentView === corpView.WEBHOOKS">
+        <div class="webhooks-container">
+          <div class="webhooks-header">
+            <h2>🔗 Webhooks (Demo)</h2>
+            <button class="add-webhook-button" (click)="openWebhookModal()">
+              <mat-icon>add</mat-icon>
+              Add Webhook (Demo)
+            </button>
+          </div>
+
+          <div class="webhooks-section">
+            <h3>Organization-Level Webhooks</h3>
+            <div class="webhook-category">
+              <div class="webhook-type">
+                <strong>Regular Webhooks</strong>
+                <p>No regular webhooks configured</p>
+              </div>
+              <div class="webhook-type">
+                <strong>Filtered Webhooks</strong>
+                <p>No filtered webhooks configured</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="webhooks-section">
+            <h3>Controller-Level Webhooks</h3>
+            <div class="webhook-category">
+              <div class="webhook-type">
+                <strong>Regular Webhooks</strong>
+                <p>No regular webhooks configured</p>
+              </div>
+              <div class="webhook-type">
+                <strong>Filtered Webhooks</strong>
+                <p>No filtered webhooks configured</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEBHOOK MODAL -->
+  <div class="webhook-modal-overlay" *ngIf="(viewModel$ | async)?.showWebhookModal" (click)="closeWebhookModal()">
+    <div class="webhook-modal" (click)="$event.stopPropagation()">
+      <div class="webhook-modal-header">
+        <h3>🔗 Add Webhook (Demo)</h3>
+        <button class="close-modal-btn" (click)="closeWebhookModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="webhook-modal-content">
+        <!-- Webhook URL -->
+        <div class="webhook-form-group">
+          <label class="required-label">* Webhook URL</label>
+          <input 
+            type="text" 
+            [(ngModel)]="webhookForm.url"
+            placeholder="https://hooks.slack.com/services/..."
+            class="webhook-input">
+        </div>
+
+        <!-- Webhook Level -->
+        <div class="webhook-form-group">
+          <label class="required-label">* Webhook Level</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.level" 
+                value="controller"
+                name="webhookLevel">
+              <span class="radio-label">Controller Level</span>
+            </label>
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.level" 
+                value="organization"
+                name="webhookLevel">
+              <span class="radio-label">Organization Level</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Webhook Type -->
+        <div class="webhook-form-group">
+          <label class="required-label">* Webhook Type</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.type" 
+                value="regular"
+                name="webhookType">
+              <span class="radio-label">Regular</span>
+            </label>
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.type" 
+                value="filtered"
+                name="webhookType">
+              <span class="radio-label">Filtered</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Webhook Format -->
+        <div class="webhook-form-group">
+          <label class="required-label">* Webhook Format 
+            <mat-icon class="info-icon" title="Format information">info</mat-icon>
+          </label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.format" 
+                value="discord"
+                name="webhookFormat">
+              <span class="radio-label">Discord</span>
+            </label>
+            <label class="radio-option">
+              <input 
+                type="radio" 
+                [(ngModel)]="webhookForm.format" 
+                value="slack"
+                name="webhookFormat">
+              <span class="radio-label">Slack</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Controllers -->
+        <div class="webhook-form-group">
+          <label class="required-label">* Controllers</label>
+          <mat-select [(value)]="webhookForm.controller" class="webhook-select">
+            <mat-option value="corp-test-ARIA-Test-310">corp-test-ARIA-Test-310</mat-option>
+          </mat-select>
+        </div>
+      </div>
+
+      <div class="webhook-modal-actions">
+        <button class="webhook-create-btn" (click)="createWebhook()" [disabled]="(isCreatingWebhook$ | async)">
+          {{ (isCreatingWebhook$ | async) ? 'Creating...' : 'Create Webhook (Demo)' }}
+        </button>
+        <button class="webhook-cancel-btn" (click)="closeWebhookModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEBHOOK SUCCESS MODAL -->
+  <div class="webhook-success-modal-overlay" *ngIf="(viewModel$ | async)?.showWebhookSuccessModal" (click)="closeWebhookSuccessModal()">
+    <div class="webhook-success-modal" (click)="$event.stopPropagation()">
+      <div class="success-modal-header">
+        <div class="success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h3>🔗 Webhook Created Successfully! (Demo)</h3>
+      </div>
+      
+      <div class="success-modal-content">
+        <p class="success-message">{{ (viewModel$ | async)?.webhookSuccessMessage }}</p>
+        <div class="webhook-details">
+          <div class="detail-row">
+            <span class="detail-label">URL:</span>
+            <span class="detail-value">{{ webhookForm.url }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Level:</span>
+            <span class="detail-value">{{ webhookForm.level | titlecase }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Type:</span>
+            <span class="detail-value">{{ webhookForm.type | titlecase }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Format:</span>
+            <span class="detail-value">{{ webhookForm.format | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="success-modal-actions">
+        <button class="success-ok-btn" (click)="closeWebhookSuccessModal()">
+          <mat-icon>check</mat-icon>
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

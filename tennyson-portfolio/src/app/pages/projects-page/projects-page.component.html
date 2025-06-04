@@ -1,0 +1,56 @@
+<div class="projects-container">
+  <div class="projects-header">
+    <h1>My Projects</h1>
+    <p>Explore my recent work and technical projects</p>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading$ | async">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading projects...</p>
+  </div>
+
+  <!-- Error message -->
+  <div class="error-container" *ngIf="error$ | async">
+    <p>Error loading projects. Please try again later.</p>
+  </div>
+
+  <!-- Projects grid -->
+  <div class="projects-grid" *ngIf="!(isLoading$ | async) && !(error$ | async)">
+    <mat-card class="project-card" *ngFor="let project of (projects$ | async)">
+      <mat-card-header>
+        <mat-card-title>{{ project.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div class="tech-stack-chips">
+            <span class="tech-chip" *ngFor="let tech of project.techStack">{{ tech }}</span>
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <img mat-card-image [src]="project.imageUrl" [alt]="project.title">
+      
+      <mat-card-content>
+        <p [innerHTML]="project.description"></p>
+        
+        <h3 class="impact-heading">Key Impacts:</h3>
+        <ul class="impact-list">
+          <li *ngFor="let impact of project.impacts">{{ impact }}</li>
+        </ul>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <a mat-button color="primary" [href]="project.githubUrl" target="_blank">
+          <mat-icon>code</mat-icon> CODE
+        </a>
+        <a mat-button color="accent" [routerLink]="['/projects', project.id]">
+          <mat-icon>visibility</mat-icon> DETAILS
+        </a>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- No results message -->
+  <div class="no-results" *ngIf="!(isLoading$ | async) && !(error$ | async) && (projects$ | async)?.length === 0">
+    <p>No projects found.</p>
+  </div>
+</div>

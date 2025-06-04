@@ -1,0 +1,865 @@
+<div class="demo-dialog-container" [class.fullscreen]="isFullscreen | async">
+  <div class="dialog-header">
+    <div class="logo-container" (click)="goToHome()">
+      <div class="university-connect-logo clickable-logo">
+        <div class="logo-text">UC</div>
+      </div>
+      <h2>University Connect</h2>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button class="fullscreen-button" (click)="toggleFullscreen()">
+        <mat-icon>{{ (isFullscreen | async) ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+      <button mat-icon-button class="close-button" (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Bar - shown when user is logged in and not on login screen -->
+  <div class="nav-bar" *ngIf="(currentUser | async) && (currentView | async) !== DemoView.LOGIN">
+    <div class="nav-tabs">
+      <button 
+        class="nav-tab" 
+        [class.active]="(currentView | async) === DemoView.BROWSE"
+        (click)="goToBrowse()">
+        Browse
+      </button>
+      <button 
+        class="nav-tab" 
+        [class.active]="(currentView | async) === DemoView.UPLOAD"
+        (click)="goToUpload()">
+        Upload
+      </button>
+      <button 
+        class="nav-tab" 
+        [class.active]="(currentView | async) === DemoView.MY_RESOURCES"
+        (click)="goToMyResources()">
+        My Resources
+      </button>
+    </div>
+    <div class="nav-user-menu">
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+        {{ (currentUser | async)?.username }} <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item (click)="goToHome()">
+          <mat-icon>home</mat-icon> Home
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon> Logout
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- LOGIN VIEW -->
+  <div class="dialog-content" *ngIf="(currentView | async) === DemoView.LOGIN">
+    <div class="auth-container">
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your resources and connect with other universities</p>
+      
+      <form (ngSubmit)="login(username)">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            [(ngModel)]="username" 
+            name="username"
+            placeholder="Enter your username"
+            required>
+        </div>
+        
+        <div class="form-options">
+          <label class="remember-me">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe">
+            Remember me
+          </label>
+        </div>
+        
+        <button type="submit" class="auth-button primary" [disabled]="!username.trim()">
+          Sign In
+        </button>
+      </form>
+      
+      <div class="auth-info">
+        <p>🎭 Demo Mode Active</p>
+        <p>• Any username will work</p>
+        <p>• No password required</p>
+        <p>• Data is real from database</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME VIEW -->
+  <div class="dialog-content" *ngIf="(currentView | async) === DemoView.HOME">
+    <div class="home-container">
+      <div class="home-content">
+        <div class="home-hero">
+          <div class="hero-logo">
+            <div class="university-connect-logo-large">
+              <div class="logo-text">UC</div>
+            </div>
+          </div>
+          <h1>University Connect</h1>
+          <p>Connecting universities and sharing knowledge across institutions.</p>
+          <p class="subtitle">Your gateway to collaborative academic resource sharing.</p>
+          
+          <div class="search-container">
+            <input 
+              type="text" 
+              placeholder="Search resources..."
+              [(ngModel)]="searchTerm"
+              (keypress)="onSearchKeyPress($event)">
+            <button (click)="performSearch()">
+              <mat-icon>search</mat-icon>
+            </button>
+          </div>
+          
+          <div class="action-buttons">
+            <button class="primary-btn" (click)="goToBrowse()">BROWSE RESOURCES</button>
+          </div>
+        </div>
+        
+        <div class="feature-cards">
+          <div class="feature-card">
+            <h3>Share Resources</h3>
+            <p>Upload and share educational materials with other institutions</p>
+          </div>
+          
+          <div class="feature-card">
+            <h3>Collaborate</h3>
+            <p>Connect with other universities and build academic partnerships</p>
+          </div>
+          
+          <div class="feature-card">
+            <h3>Discover</h3>
+            <p>Access a vast library of academic resources and materials</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BROWSE RESOURCES VIEW -->
+  <div class="dialog-content" *ngIf="(currentView | async) === DemoView.BROWSE">
+    <div class="browse-container">
+      <div class="browse-content">
+        <aside class="filters-panel">
+          <h3>Filters</h3>
+          <div class="active-filters" *ngIf="hasActiveFilters | async">
+            <small>{{ (filteredResources | async)?.length || 0 }} resources match your filters</small>
+          </div>
+          
+          <div class="filter-group">
+            <h4>Description</h4>
+            <input 
+              type="text" 
+              placeholder="Filter by description..."
+              [value]="(filterForm | async)?.description || ''"
+              (input)="onFilterChange('description', $any($event.target).value)">
+          </div>
+          
+          <div class="filter-group">
+            <h4>Category</h4>
+            <select [value]="(filterForm | async)?.category || ''" (change)="onFilterChange('category', $any($event.target).value)">
+              <option *ngFor="let category of categories" [value]="category.value">
+                {{ category.display }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <h4>Price Range</h4>
+            <div class="price-inputs">
+              <input 
+                type="number" 
+                placeholder="Min"
+                [value]="(filterForm | async)?.priceMin || ''"
+                (input)="onFilterChange('priceMin', $any($event.target).value)">
+              <input 
+                type="number" 
+                placeholder="Max"
+                [value]="(filterForm | async)?.priceMax || ''"
+                (input)="onFilterChange('priceMax', $any($event.target).value)">
+            </div>
+          </div>
+          
+          <div class="filter-group">
+            <h4>Resource Availability Period</h4>
+            <input 
+              type="date" 
+              placeholder="From"
+              [value]="(filterForm | async)?.availabilityFrom || ''"
+              (change)="onFilterChange('availabilityFrom', $any($event.target).value)">
+            <label>To</label>
+            <input 
+              type="date" 
+              placeholder="To"
+              [value]="(filterForm | async)?.availabilityTo || ''"
+              (change)="onFilterChange('availabilityTo', $any($event.target).value)">
+          </div>
+          
+          <div class="filter-actions">
+            <button class="clear-btn" (click)="clearFilters()">Clear All</button>
+          </div>
+        </aside>
+        
+        <div class="resources-grid">
+          <!-- Loading state -->
+          <div *ngIf="isLoadingResources | async" class="loading-message">
+            <p>Loading resources...</p>
+          </div>
+          
+          <!-- No resources message -->
+          <div *ngIf="!(isLoadingResources | async) && ((filteredResources | async)?.length || 0) === 0 && ((allResources | async)?.length || 0) > 0" class="no-resources-message">
+            <p>No resources match your current filters.</p>
+            <button class="clear-filters-btn" (click)="clearFilters()">Clear Filters</button>
+          </div>
+          
+          <!-- No resources at all message -->
+          <div *ngIf="!(isLoadingResources | async) && ((allResources | async)?.length || 0) === 0" class="no-resources-message">
+            <p>No resources available at the moment.</p>
+            <button class="upload-resources-btn" (click)="goToUpload()">Upload the first resource!</button>
+          </div>
+          
+          <!-- Real resources from database (filtered) -->
+          <div class="resource-card" *ngFor="let resource of (filteredResources | async)">
+            <img 
+              [src]="resource.image || 'assets/images/resources/default-resource.svg'" 
+              [alt]="resource.name"
+              onerror="this.src='assets/images/resources/default-resource.svg'">
+            <div class="resource-details">
+              <h3>{{ resource.name }}</h3>
+              <p>{{ resource.description }}</p>
+              <div class="resource-tags">
+                <span class="tag" *ngFor="let tag of resource.tags">{{ tag }}</span>
+              </div>
+              <div class="resource-location" *ngIf="resource.location.city && resource.location.state">
+                <small class="location-text">📍 {{ resource.location.city }}, {{ resource.location.state }}</small>
+              </div>
+              <div class="resource-price">
+                <span class="price">${{ resource.price }}/hr</span>
+                <button class="book-btn" (click)="bookResource(resource)">Book Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD RESOURCE VIEW -->
+  <div class="dialog-content" *ngIf="(currentView | async) === DemoView.UPLOAD">
+    <div class="upload-container">
+      <div class="upload-content">
+        <div class="stepper">
+          <div class="step" [class.active]="(currentUploadStep | async) === 1">
+            <div class="step-number">1</div>
+            <div class="step-label">Basic Info</div>
+          </div>
+          <div class="step" [class.active]="(currentUploadStep | async) === 2">
+            <div class="step-number">2</div>
+            <div class="step-label">Upload Images</div>
+          </div>
+          <div class="step" [class.active]="(currentUploadStep | async) === 3">
+            <div class="step-number">3</div>
+            <div class="step-label">Pricing</div>
+          </div>
+          <div class="step" [class.active]="(currentUploadStep | async) === 4">
+            <div class="step-number">4</div>
+            <div class="step-label">Location</div>
+          </div>
+          <div class="step" [class.active]="(currentUploadStep | async) === 5">
+            <div class="step-number">5</div>
+            <div class="step-label">Availability</div>
+          </div>
+          <div class="step" [class.active]="(currentUploadStep | async) === 6">
+            <div class="step-number">6</div>
+            <div class="step-label">Review & Publish</div>
+          </div>
+        </div>
+
+        <div class="step-content">
+          <!-- Step 1: Basic Info -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 1">
+            <h3>Basic Information</h3>
+            <p>Enter the basic details of your resource.</p>
+            
+            <div class="form-group">
+              <p class="field-label">Resource Name</p>
+              <input 
+                type="text" 
+                [value]="(resourceForm | async)?.resourceName || ''"
+                (input)="updateResourceFormField('resourceName', $any($event.target).value)"
+                placeholder="Enter a name for your resource">
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Description</p>
+              <textarea 
+                [value]="(resourceForm | async)?.description || ''"
+                (input)="updateResourceFormField('description', $any($event.target).value)"
+                placeholder="Enter a detailed description of your resource"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Category</p>
+              <select [value]="(resourceForm | async)?.category || ''" (change)="updateResourceFormField('category', $any($event.target).value)">
+                <option value="">Select a category</option>
+                <option value="space">Space</option>
+                <option value="equipment">Equipment</option>
+                <option value="lab">Lab</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Tags *</p>
+              <div class="tag-input-container">
+                <input 
+                  type="text" 
+                  [(ngModel)]="currentTag"
+                  (keypress)="onTagKeyPress($event)"
+                  placeholder="Enter a tag and press Enter (required - at least one tag)">
+              </div>
+              
+              <!-- Display existing tags -->
+              <div class="tags-display" *ngIf="(tags | async) && (tags | async)!.length > 0">
+                <div class="tag-chip" *ngFor="let tag of (tags | async); let i = index">
+                  <span class="tag-text">{{ tag }}</span>
+                  <button type="button" class="remove-tag-btn" (click)="removeTag(i)">×</button>
+                </div>
+              </div>
+              
+              <!-- Validation message for tags -->
+              <div class="tags-error" *ngIf="!(tags | async) || (tags | async)!.length === 0" 
+                   style="color: #f44336; font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                <mat-icon style="font-size: 16px; width: 16px; height: 16px;">error</mat-icon>
+                At least one tag is required
+              </div>
+            </div>
+          </div>
+          
+          <!-- Step 2: Upload Images -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 2">
+            <h3>Upload Images</h3>
+            
+            <div class="image-upload-area" 
+                 (click)="triggerFileInput()"
+                 (drop)="handleImageDrop($event)"
+                 (dragover)="handleDragOver($event)"
+                 (dragleave)="handleDragLeave($event)">
+              <mat-icon>cloud_upload</mat-icon>
+              <p>Drag and drop images here, or click to select files</p>
+              <button type="button" class="upload-btn">Choose Images</button>
+            </div>
+            
+            <input 
+              type="file" 
+              id="imageFileInput" 
+              multiple 
+              accept="image/*" 
+              style="display: none"
+              (change)="handleFileSelection($event)">
+            
+            <div class="uploaded-images" *ngIf="(imagePreviewUrls | async)?.length">
+              <h4>Uploaded Images ({{ (imagePreviewUrls | async)?.length }})</h4>
+              <div class="image-preview-grid">
+                <div class="image-preview" *ngFor="let url of (imagePreviewUrls | async); let i = index">
+                  <img [src]="url" [alt]="'Preview ' + (i + 1)">
+                  <div class="image-overlay">
+                    <span class="image-name">Image {{ i + 1 }}</span>
+                    <button class="remove-image-btn" (click)="removeImage(i)" type="button">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Step 3: Pricing -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 3">
+            <h3>Pricing</h3>
+            <p>Set the pricing for your resource.</p>
+            
+            <div class="form-group">
+              <p class="field-label">Price (per hour)</p>
+              <input 
+                type="number" 
+                [value]="(resourceForm | async)?.price || ''"
+                (input)="updateResourceFormField('price', $any($event.target).value)"
+                placeholder="Enter price">
+            </div>
+          </div>
+          
+          <!-- Step 4: Location -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 4">
+            <h3>Location</h3>
+            <p>Enter the location details of your resource.</p>
+            
+            <div class="form-group">
+              <p class="field-label">Address</p>
+              <input 
+                type="text" 
+                [value]="(resourceForm | async)?.address || ''"
+                (input)="updateResourceFormField('address', $any($event.target).value)"
+                placeholder="Enter address">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <p class="field-label">City</p>
+                <input 
+                  type="text" 
+                  [value]="(resourceForm | async)?.city || ''"
+                  (input)="updateResourceFormField('city', $any($event.target).value)"
+                  placeholder="City">
+              </div>
+              
+              <div class="form-group">
+                <p class="field-label special">State</p>
+                <input 
+                  type="text" 
+                  [value]="(resourceForm | async)?.state || ''"
+                  (input)="updateResourceFormField('state', $any($event.target).value)"
+                  placeholder="State">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Zip Code</p>
+              <input 
+                type="text" 
+                [value]="(resourceForm | async)?.zipCode || ''"
+                (input)="updateResourceFormField('zipCode', $any($event.target).value)"
+                placeholder="Zip code">
+            </div>
+          </div>
+          
+          <!-- Step 5: Availability -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 5">
+            <h3>Availability</h3>
+            <p>Set when your resource is available.</p>
+            
+            <div class="availability-days">
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Monday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.monday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.mondayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Tuesday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.tuesday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.tuesdayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Wednesday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.wednesday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.wednesdayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Thursday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.thursday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.thursdayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Friday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.friday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.fridayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Saturday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.saturday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.saturdayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+              
+              <div class="day-item">
+                <label class="day-label">
+                  <input type="checkbox" checked disabled>
+                  Sunday
+                </label>
+                <div class="time-inputs">
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.sunday || '09:00'"
+                    disabled
+                    readonly>
+                  <span class="time-separator">to</span>
+                  <input 
+                    type="time" 
+                    [value]="(resourceForm | async)?.sundayEnd || '17:00'"
+                    disabled
+                    readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Step 6: Review & Publish -->
+          <div class="step-form" *ngIf="(currentUploadStep | async) === 6">
+            <h3>Review & Publish</h3>
+            <p>Review your resource details before publishing.</p>
+            
+            <div class="resource-preview">
+              <h4>Resource Summary</h4>
+              
+              <div class="preview-item">
+                <span class="label">Name: </span>
+                <span class="value">{{ (resourceForm | async)?.resourceName || 'Not specified' }}</span>
+              </div>
+              
+              <div class="preview-item">
+                <span class="label">Description: </span>
+                <span class="value">{{ (resourceForm | async)?.description || 'Not specified' }}</span>
+              </div>
+              
+              <div class="preview-item">
+                <span class="label">Category: </span>
+                <span class="value">{{ (resourceForm | async)?.category || 'Not specified' }}</span>
+              </div>
+              
+              <div class="preview-item" *ngIf="(tags | async) && (tags | async)!.length > 0">
+                <span class="label">Tags: </span>
+                <span class="value">{{ (tags | async)?.join(', ') }}</span>
+              </div>
+              
+              <div class="preview-item">
+                <span class="label">Price: </span>
+                <span class="value">${{ (resourceForm | async)?.price || '0.00' }}/hr</span>
+              </div>
+              
+              <div class="preview-item">
+                <span class="label">Address: </span>
+                <span class="value">{{ (resourceForm | async)?.address || 'Not specified' }}</span>
+              </div>
+              
+              <div class="preview-item" *ngIf="(resourceForm | async)?.city || (resourceForm | async)?.state || (resourceForm | async)?.zipCode">
+                <span class="label">Location: </span>
+                <span class="value">{{ (resourceForm | async)?.city }}{{ (resourceForm | async)?.city && (resourceForm | async)?.state ? ', ' : '' }}{{ (resourceForm | async)?.state }} {{ (resourceForm | async)?.zipCode }}</span>
+              </div>
+              
+              <!-- Availability summary -->
+              <div class="preview-availability" *ngIf="(resourceForm | async)?.monday || (resourceForm | async)?.tuesday || (resourceForm | async)?.wednesday || (resourceForm | async)?.thursday || (resourceForm | async)?.friday">
+                <h5>Availability:</h5>
+                <div class="availability-summary">
+                  <span *ngIf="(resourceForm | async)?.monday" class="availability-day">Mon: {{ (resourceForm | async)?.monday }} - {{ (resourceForm | async)?.mondayEnd }}</span>
+                  <span *ngIf="(resourceForm | async)?.tuesday" class="availability-day">Tue: {{ (resourceForm | async)?.tuesday }} - {{ (resourceForm | async)?.tuesdayEnd }}</span>
+                  <span *ngIf="(resourceForm | async)?.wednesday" class="availability-day">Wed: {{ (resourceForm | async)?.wednesday }} - {{ (resourceForm | async)?.wednesdayEnd }}</span>
+                  <span *ngIf="(resourceForm | async)?.thursday" class="availability-day">Thu: {{ (resourceForm | async)?.thursday }} - {{ (resourceForm | async)?.thursdayEnd }}</span>
+                  <span *ngIf="(resourceForm | async)?.friday" class="availability-day">Fri: {{ (resourceForm | async)?.friday }} - {{ (resourceForm | async)?.fridayEnd }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="publish-agreement">
+              <label class="agreement-label">
+                <input type="checkbox">
+                I confirm that the information provided is accurate
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="back-btn" *ngIf="(currentUploadStep | async)! > 1" (click)="prevUploadStep()">Back</button>
+          <button class="next-btn" 
+                  *ngIf="(currentUploadStep | async)! < 6" 
+                  [disabled]="(currentUploadStep | async) === 1 && (!(tags | async) || (tags | async)!.length === 0)"
+                  (click)="nextUploadStep()">Next</button>
+          <button class="publish-btn" 
+                  *ngIf="(currentUploadStep | async) === 6" 
+                  [disabled]="!(tags | async) || (tags | async)!.length === 0"
+                  (click)="publishResource()">Publish Resource</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY RESOURCES VIEW -->
+  <div class="dialog-content" *ngIf="(currentView | async) === DemoView.MY_RESOURCES">
+    <div class="my-resources-container">
+      <div class="resources-header">
+        <h2>My Resources</h2>
+        <p>Manage your uploaded resources and view booking requests.</p>
+      </div>
+
+      <div class="my-resources-content">
+        <div class="resources-stats">
+          <div class="stat-card">
+            <h3>{{ (userResources | async)?.length || 0 }}</h3>
+            <p>Active Resources</p>
+          </div>
+          <div class="stat-card">
+            <h3>-</h3>
+            <p>Total Bookings</p>
+          </div>
+          <div class="stat-card">
+            <h3>-</h3>
+            <p>Total Earnings</p>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoadingUserResources | async" class="loading-message">
+          <p>Loading your resources...</p>
+        </div>
+
+        <!-- No resources message -->
+        <div *ngIf="!(isLoadingUserResources | async) && ((userResources | async)?.length || 0) === 0" class="no-resources-message">
+          <p>You haven't uploaded any resources yet.</p>
+          <button class="upload-resources-btn" (click)="goToUpload()">Upload your first resource!</button>
+        </div>
+
+        <!-- Real user resources -->
+        <div class="my-resources-list" *ngIf="!(isLoadingUserResources | async) && ((userResources | async)?.length || 0) > 0">
+          <div class="resource-item" *ngFor="let resource of (userResources | async)">
+            <div class="resource-info">
+              <h4>{{ resource.name }}</h4>
+              <p>{{ resource.description }}</p>
+              <div class="resource-meta">
+                <span class="status" [class.active]="resource.status === 'active'" [class.inactive]="resource.status !== 'active'">
+                  {{ resource.status | titlecase }}
+                </span>
+                <span class="price">${{ resource.price }}/hr</span>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <button class="view-btn" (click)="viewBookings(resource.id, resource.name)" title="View bookings">View Bookings</button>
+              <button class="delete-btn" (click)="deleteResource(resource.id, resource.name)" title="Delete resource">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT OVERLAY -->
+  <div class="payment-overlay" *ngIf="showPaymentOverlay | async" (click)="closePaymentOverlay()">
+    <div class="payment-modal" (click)="$event.stopPropagation()">
+      <div class="payment-header">
+        <h3>Book Resource</h3>
+        <button class="close-payment-btn" (click)="closePaymentOverlay()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="payment-content" *ngIf="(selectedResource | async) as resource">
+        <!-- Resource Summary -->
+        <div class="booking-summary">
+          <div class="resource-preview">
+            <img [src]="resource.image || 'assets/images/resources/default-resource.svg'" 
+                 [alt]="resource.name"
+                 onerror="this.src='assets/images/resources/default-resource.svg'">
+            <div class="resource-info">
+              <h4>{{ resource.name }}</h4>
+              <p>{{ resource.description }}</p>
+              <div class="location">📍 {{ resource.location.city }}, {{ resource.location.state }}</div>
+              <div class="price-info">
+                <span class="rate">${{ resource.price }}/hour</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking Details -->
+        <div class="booking-details">
+          <h4>Booking Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" class="payment-input">
+            </div>
+            <div class="form-group">
+              <label>Time</label>
+              <select class="payment-input">
+                <option>9:00 AM - 10:00 AM</option>
+                <option>10:00 AM - 11:00 AM</option>
+                <option>11:00 AM - 12:00 PM</option>
+                <option>1:00 PM - 2:00 PM</option>
+                <option>2:00 PM - 3:00 PM</option>
+                <option>3:00 PM - 4:00 PM</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="payment-info">
+          <h4>Payment Information</h4>
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" class="payment-input" placeholder="John Doe" disabled>
+          </div>
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" class="payment-input" placeholder="1234 5678 9012 3456" disabled>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="text" class="payment-input" placeholder="MM/YY" disabled>
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" class="payment-input" placeholder="123" disabled>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total and Submit -->
+        <div class="payment-total">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>${{ resource.price }}.00</span>
+          </div>
+          <div class="total-row">
+            <span>Service Fee:</span>
+            <span>$2.99</span>
+          </div>
+          <div class="total-row total-final">
+            <span><strong>Total:</strong></span>
+            <span><strong>${{ resource.price + 2.99 | number:'1.2-2' }}</strong></span>
+          </div>
+        </div>
+
+        <div class="payment-actions">
+          <button class="cancel-btn" (click)="closePaymentOverlay()">Cancel</button>
+          <button class="submit-payment-btn" (click)="handlePaymentSubmit()">
+            Complete Booking
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div class="custom-modal-overlay" *ngIf="showDeleteConfirmModal | async" (click)="cancelDelete()">
+    <div class="custom-modal delete-confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon delete-icon">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <h3>Delete Resource</h3>
+      </div>
+      
+      <div class="modal-content">
+        <p>Are you sure you want to delete <strong>"{{ (deleteResourceData | async)?.name }}"</strong>?</p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="cancel-btn" (click)="cancelDelete()">Cancel</button>
+        <button class="delete-confirm-btn" (click)="confirmDelete()">Delete Resource</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div class="custom-modal-overlay" *ngIf="showSuccessModal | async" (click)="closeSuccessModal()">
+    <div class="custom-modal success-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h3>Success</h3>
+      </div>
+      
+      <div class="modal-content">
+        <p>{{ successMessage | async }}</p>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="success-btn" (click)="closeSuccessModal()">OK</button>
+      </div>
+    </div>
+  </div>
+</div> 

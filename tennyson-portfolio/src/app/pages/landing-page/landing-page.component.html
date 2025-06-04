@@ -1,0 +1,141 @@
+<div class="hero-section" *ngIf="bio$ | async as bio">
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1 class="mb-3">{{ bio.name }}</h1>
+      <h2 class="mb-4">{{ bio.title }}</h2>
+      <p class="lead mb-4">{{ bio.summary }}</p>
+      
+      <div class="cta-buttons">
+        <a mat-raised-button color="primary" routerLink="/projects" class="cta-button">View My Work</a>
+        <a mat-raised-button color="accent" routerLink="/contact" class="cta-button">Contact Me</a>
+      </div>
+    </div>
+    
+    <div class="hero-image">
+      <img src="assets/images/resources/tumblr_21e1e97740d23d7ce6584826bba6999d_1fb704d0_1280.jpg" 
+           alt="Tennyson Love - Professional Photo" 
+           class="professional-photo">
+    </div>
+  </div>
+</div>
+
+<!-- Loading/Error for Bio -->
+<ng-container *ngIf="!(bio$ | async)">
+  <!-- You can add specific loading/error indicators for bio here if desired -->
+  <div class="loading-container" *ngIf="isLoadingProjects$ | async"> <!-- Using project loading as a general page load indicator for now -->
+    <p>Loading bio...</p>
+  </div>
+</ng-container>
+
+<!-- Section Separator -->
+<div class="section-separator">
+  <div class="separator-line"></div>
+  <div class="separator-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <div class="separator-line"></div>
+</div>
+
+<div class="tech-stack" *ngIf="techStack$ | async as techStackItems">
+  <h3 class="section-title">Portfolio Stack</h3>
+  <div class="tech-icons" *ngIf="techStackItems.length > 0">
+    <div class="tech-icon" *ngFor="let tech of techStackItems">
+      <div class="percentage-circle">
+        <div class="percentage-value">{{ tech.percentage }}%</div>
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <defs>
+            <linearGradient [id]="'gradient-' + tech.name" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00c2ff" />
+              <stop offset="100%" stop-color="#ff00e6" />
+            </linearGradient>
+          </defs>
+          <path class="circle-bg"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+          <path class="circle"
+            [attr.stroke-dasharray]="tech.percentage + ', 100'"
+            [attr.stroke]="'url(#gradient-' + tech.name + ')'"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+      </div>
+      <span class="tech-name">{{ tech.name }}</span>
+    </div>
+  </div>
+  <div class="no-items" *ngIf="techStackItems.length === 0">
+    <p>Tech stack information is currently unavailable.</p>
+  </div>
+</div>
+
+<!-- Loading/Error for Tech Stack -->
+<ng-container *ngIf="!(techStack$ | async)">
+  <!-- You can add specific loading/error indicators for tech stack here if desired -->
+  <div class="loading-container" *ngIf="isLoadingProjects$ | async"> <!-- Using project loading as a general page load indicator -->
+    <p>Loading tech stack...</p>
+  </div>
+</ng-container>
+
+<!-- Featured Projects Section -->
+<div class="featured-projects">
+  <h3 class="section-title">Featured Projects</h3>
+  
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoadingProjects$ | async">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading featured projects...</p>
+  </div>
+  
+  <!-- Error message -->
+  <div class="error-container" *ngIf="hasErrorProjects$ | async as error">
+    <p>Unable to load featured projects.</p>
+    <!-- <p *ngIf="error">Error details: {{ error | json }}</p> -->
+  </div>
+  
+  <ng-container *ngIf="! (isLoadingProjects$ | async) && ! (hasErrorProjects$ | async)">
+    <ng-container *ngIf="featuredProjects$ | async as featuredProjects">
+      <!-- No featured projects message -->
+      <div class="no-projects" *ngIf="featuredProjects.length === 0">
+        <p>No featured projects available at the moment.</p>
+      </div>
+      
+      <!-- Featured projects grid -->
+      <div class="featured-projects-grid" *ngIf="featuredProjects.length > 0">
+        <mat-card class="featured-project-card" *ngFor="let project of featuredProjects">
+          <mat-card-header>
+            <mat-card-title>{{ project.title }}</mat-card-title>
+          </mat-card-header>
+          
+          <img mat-card-image [src]="project.imageUrl" [alt]="project.title">
+          
+          <mat-card-content>
+            <p [innerHTML]="project.description"></p>
+            
+            <div class="tech-stack-chips">
+              <span class="tech-chip" *ngFor="let tech of project.techStack.slice(0, 3)">{{ tech }}</span>
+              <span class="more-tech" *ngIf="project.techStack.length > 3">+{{ project.techStack.length - 3 }}</span>
+            </div>
+          </mat-card-content>
+          
+          <mat-card-actions>
+            <a mat-button color="primary" [routerLink]="['/projects', project.id]">
+              <mat-icon>visibility</mat-icon> View Details
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+      
+      <div class="view-all-projects" *ngIf="featuredProjects.length > 0">
+        <a mat-button color="primary" routerLink="/projects">
+          View All Projects <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+    </ng-container>
+  </ng-container>
+
+</div>

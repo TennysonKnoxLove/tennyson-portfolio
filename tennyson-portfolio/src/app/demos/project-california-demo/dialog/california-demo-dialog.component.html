@@ -1,0 +1,700 @@
+<div class="california-dialog-container" [class.fullscreen]="isFullscreen | async">
+  <!-- Header -->
+  <div class="california-header">
+    <div class="header-left">
+      <div class="logo-container">
+<h2>Project California - Live Demo</h2>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <!-- Container Status -->
+      <div class="status-indicator">
+        <mat-icon [class.running]="dockerRunning | async">{{ (dockerRunning | async) ? 'play_circle' : 'stop_circle' }}</mat-icon>
+        <span>{{ runningContainerCount | async }}/3 Running</span>
+      </div>
+      
+      <!-- Fullscreen Toggle -->
+      <button mat-icon-button class="header-button" (click)="toggleFullscreen()">
+        <mat-icon>{{ (isFullscreen | async) ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+      
+      <!-- Close Button -->
+      <button mat-icon-button class="header-button close-button" (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="california-nav">
+    <button 
+      class="nav-tab" 
+      [class.active]="(currentView | async) === CaliforniaView.TERMINAL"
+      (click)="switchView(CaliforniaView.TERMINAL)">
+      <mat-icon>terminal</mat-icon>
+      <span>Docker Terminal</span>
+    </button>
+    
+    <button 
+      class="nav-tab" 
+      [class.active]="(currentView | async) === CaliforniaView.APPLICATION"
+      [disabled]="!(isApplicationReady | async)"
+      (click)="switchView(CaliforniaView.APPLICATION)">
+      <mat-icon>web</mat-icon>
+      <span>Live Application</span>
+      <mat-icon class="ready-indicator" *ngIf="isApplicationReady | async">check_circle</mat-icon>
+    </button>
+  </div>
+
+  <!-- Content Area -->
+  <div class="california-content">
+    <!-- Terminal View -->
+    <div class="terminal-view" *ngIf="(currentView | async) === CaliforniaView.TERMINAL">
+      <!-- Container Status Cards -->
+      <div class="containers-status" *ngIf="(dockerContainers | async)?.length">
+        <h3>🐳 Container Status</h3>
+        <div class="container-grid">
+          <div *ngFor="let container of (dockerContainers | async)" class="container-card">
+            <div class="container-info">
+              <div class="container-header">
+                <h4>{{ container.name }}</h4>
+                <div class="status-badge" [ngClass]="container.status">
+                  <span class="status-dot"></span>
+                  <span>{{ container.status | titlecase }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="container-ports">
+              <span *ngFor="let port of container.ports" class="port-badge">{{ port }}</span>
+            </div>
+            <div class="container-uptime" *ngIf="container.uptime">{{ container.uptime }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="terminal">
+        <div class="terminal-header">
+          <span>🏔️ Project California Docker Terminal</span>
+          <div class="terminal-actions">
+            <button mat-icon-button (click)="californiaFacade.clearTerminal()" 
+                    title="Clear terminal">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </div>
+        </div>
+        
+        <div class="terminal-output">
+          <div *ngFor="let line of (terminalOutput | async)" class="terminal-line">{{ line }}</div>
+          <div *ngIf="isExecutingCommand | async" class="terminal-line loading">
+            <mat-spinner diameter="16"></mat-spinner>
+            <span>Executing command...</span>
+          </div>
+        </div>
+        
+        <div class="terminal-input">
+          <span class="prompt">$ </span>
+          <input 
+            type="text" 
+            [(ngModel)]="terminalInput" 
+            (keydown.enter)="executeDockerCommand()"
+            [disabled]="(isExecutingCommand | async) ?? false"
+            placeholder="Type 'docker-compose up' to start the real Project California app..."
+            #terminalInputElement>
+        </div>
+      </div>
+      
+      <!-- Help Section -->
+      <div class="help-section">
+        <h3>💡 Getting Started</h3>
+        <ul>
+          <li>Type <code>docker-compose up</code> to start the real Project California application</li>
+          <li>This will build and run actual Docker containers with a full-stack app</li>
+          <li>Once running, switch to the "Live Application" tab to interact with the real app</li>
+          <li>Use <code>docker ps</code> to check container status</li>
+          <li>Use <code>docker-compose down</code> to stop all containers</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Application View -->
+    <div class="application-view" *ngIf="(currentView | async) === CaliforniaView.APPLICATION">
+      <div class="app-container">
+        <!-- Container Loading State -->
+        <div class="container-loading-state" *ngIf="showContainerLoading">
+          <div class="loading-content">
+            <div class="loading-animation">
+              <mat-spinner diameter="60"></mat-spinner>
+            </div>
+            
+            <div class="loading-text">
+              <h2>Waiting for Docker containers to start up</h2>
+              <p>Please wait while we initialize the Project California environment...</p>
+            </div>
+            
+            <div class="loading-actions">
+              <button class="return-terminal-btn" (click)="returnToTerminal()">
+                <mat-icon>terminal</mat-icon>
+                Return to Terminal
+              </button>
+            </div>
+            
+        
+          </div>
+        </div>
+
+        <!-- Normal App Content -->
+        <div class="app-content" *ngIf="!showContainerLoading">
+          <!-- App Navigation Bar -->
+          <div class="app-navbar">
+            <div class="navbar-left">
+              <div class="app-logo">
+                <mat-icon>business</mat-icon>
+                <span>Project California - Event Management Platform</span>
+              </div>
+              <div class="nav-links">
+                <a class="nav-link" [class.active]="activeTab === 'events'" (click)="switchApplicationTab('events')">
+                  <mat-icon>event</mat-icon>
+                  Events
+                </a>
+                <a class="nav-link" [class.active]="activeTab === 'analytics'" (click)="switchApplicationTab('analytics')">
+                  <mat-icon>analytics</mat-icon>
+                  Analytics
+                </a>
+                <a class="nav-link" [class.active]="activeTab === 'settings'" (click)="switchApplicationTab('settings')">
+                  <mat-icon>settings</mat-icon>
+                  Settings
+                </a>
+              </div>
+            </div>
+            
+            <div class="navbar-right">
+              <div class="navbar-actions">
+                <button class="action-btn" title="Notifications" (click)="toggleNotifications()">
+                  <mat-icon>notifications</mat-icon>
+                  <span class="notification-badge">3</span>
+                </button>
+              </div>
+              
+              <div class="user-menu">
+                <div class="user-avatar">
+                  <mat-icon>account_circle</mat-icon>
+                </div>
+                <div class="user-info">
+                  <div class="user-name">John Doe</div>
+                  <div class="user-role">Event Manager</div>
+                </div>
+                <mat-icon class="dropdown-arrow">keyboard_arrow_down</mat-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notifications Sidebar -->
+          <div class="notifications-sidebar" [class.open]="showNotifications">
+            <div class="notifications-header">
+              <h3>Notifications</h3>
+              <button class="close-notifications" (click)="toggleNotifications()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            
+            <div class="notifications-content">
+              <div class="notification-item unread">
+                <div class="notification-icon">
+                  <mat-icon class="icon-event">event</mat-icon>
+                </div>
+                <div class="notification-details">
+                  <div class="notification-title">New Event Booking</div>
+                  <div class="notification-message">Wine Tasting & Jazz Night has been confirmed for March 22nd</div>
+                  <div class="notification-time">2 minutes ago</div>
+                </div>
+                <div class="notification-dot"></div>
+              </div>
+              
+              <div class="notification-item unread">
+                <div class="notification-icon">
+                  <mat-icon class="icon-payment">payment</mat-icon>
+                </div>
+                <div class="notification-details">
+                  <div class="notification-title">Payment Received</div>
+                  <div class="notification-message">$18,500 payment received for Corporate Team Building event</div>
+                  <div class="notification-time">15 minutes ago</div>
+                </div>
+                <div class="notification-dot"></div>
+              </div>
+              
+              <div class="notification-item unread">
+                <div class="notification-icon">
+                  <mat-icon class="icon-warning">warning</mat-icon>
+                </div>
+                <div class="notification-details">
+                  <div class="notification-title">Venue Capacity Alert</div>
+                  <div class="notification-message">Grand Ballroom approaching capacity limit for April 6th event</div>
+                  <div class="notification-time">1 hour ago</div>
+                </div>
+                <div class="notification-dot"></div>
+              </div>
+              
+              <div class="notification-item">
+                <div class="notification-icon">
+                  <mat-icon class="icon-check">check_circle</mat-icon>
+                </div>
+                <div class="notification-details">
+                  <div class="notification-title">Event Setup Complete</div>
+                  <div class="notification-message">Tech Startup Pitch Night setup has been completed</div>
+                  <div class="notification-time">3 hours ago</div>
+                </div>
+              </div>
+              
+              <div class="notification-item">
+                <div class="notification-icon">
+                  <mat-icon class="icon-update">update</mat-icon>
+                </div>
+                <div class="notification-details">
+                  <div class="notification-title">Schedule Update</div>
+                  <div class="notification-message">Cooking Masterclass moved to 11:30 AM due to venue availability</div>
+                  <div class="notification-time">Yesterday</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="notifications-footer">
+              <button class="view-all-btn">View All Notifications</button>
+              <button class="mark-read-btn">Mark All as Read</button>
+            </div>
+          </div>
+          
+          <!-- Sidebar Overlay -->
+          <div class="sidebar-overlay" [class.active]="showNotifications" (click)="toggleNotifications()"></div>
+
+          <!-- Tab Content controlled by Angular -->
+          <div class="tab-content" [class.active]="activeTab === 'events'">
+            <!-- Monthly Stats -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Events This Month</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">$127K</div>
+                <div class="stat-label">Monthly Revenue</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">3,450</div>
+                <div class="stat-label">Total Attendees</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">97%</div>
+                <div class="stat-label">Success Rate</div>
+              </div>
+            </div>
+
+            <!-- Event Cards -->
+            <div class="events-grid">
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Wine Tasting & Jazz Night</div>
+                  <div class="event-date">Friday, March 22, 2024 • 7:00 PM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Rooftop Terrace</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">150 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$18,500</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-confirmed">Confirmed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Corporate Team Building & Bingo</div>
+                  <div class="event-date">Wednesday, March 27, 2024 • 2:00 PM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Grand Ballroom</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">200 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$24,000</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-confirmed">Confirmed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Sustainable Living Workshop</div>
+                  <div class="event-date">Saturday, March 30, 2024 • 10:00 AM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Community Center</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">80 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$4,800</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-pending">Pending</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Tech Startup Pitch Night</div>
+                  <div class="event-date">Thursday, April 4, 2024 • 6:30 PM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Innovation Hub</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">120 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$15,600</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-confirmed">Confirmed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Charity Gala Fundraiser</div>
+                  <div class="event-date">Saturday, April 6, 2024 • 7:00 PM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Grand Hotel Ballroom</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">300 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$45,000</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-confirmed">Confirmed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card">
+                <div class="event-header">
+                  <div class="event-title">Cooking Masterclass Series</div>
+                  <div class="event-date">Sunday, April 7, 2024 • 11:00 AM</div>
+                </div>
+                <div class="event-body">
+                  <div class="event-details">
+                    <div class="event-detail">
+                      <div class="event-detail-label">Venue</div>
+                      <div class="event-detail-value">Culinary Institute</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Capacity</div>
+                      <div class="event-detail-value">40 guests</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Revenue</div>
+                      <div class="event-detail-value event-revenue">$8,400</div>
+                    </div>
+                    <div class="event-detail">
+                      <div class="event-detail-label">Status</div>
+                      <div class="event-status status-pending">Pending</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" [class.active]="activeTab === 'analytics'">
+            <!-- Yearly Stats -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">$2.1M</div>
+                <div class="stat-label">Yearly Revenue</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">1,247</div>
+                <div class="stat-label">Total Events</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">45.6K</div>
+                <div class="stat-label">Total Attendees</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">94%</div>
+                <div class="stat-label">Client Satisfaction</div>
+              </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="chart-section">
+              <div class="chart-card">
+                <div class="chart-title">Revenue by Event Type</div>
+                <div class="bar-chart">
+                  <div class="bar-item">
+                    <div class="bar-label">Corporate Events</div>
+                    <div class="bar-container">
+                      <div class="bar-fill" style="width: 85%"></div>
+                      <div class="bar-value">$890K</div>
+                    </div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar-label">Weddings</div>
+                    <div class="bar-container">
+                      <div class="bar-fill" style="width: 70%"></div>
+                      <div class="bar-value">$650K</div>
+                    </div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar-label">Social Events</div>
+                    <div class="bar-container">
+                      <div class="bar-fill" style="width: 45%"></div>
+                      <div class="bar-value">$380K</div>
+                    </div>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar-label">Workshops</div>
+                    <div class="bar-container">
+                      <div class="bar-fill" style="width: 25%"></div>
+                      <div class="bar-value">$180K</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="chart-card">
+                <div class="chart-title">Monthly Growth Trend</div>
+                <div class="line-chart">
+                  <div class="chart-grid">
+                    <div class="chart-line">
+                      <div class="line-point" style="left: 8%; bottom: 20%"></div>
+                      <div class="line-point" style="left: 25%; bottom: 35%"></div>
+                      <div class="line-point" style="left: 42%; bottom: 25%"></div>
+                      <div class="line-point" style="left: 58%; bottom: 55%"></div>
+                      <div class="line-point" style="left: 75%; bottom: 70%"></div>
+                      <div class="line-point" style="left: 92%; bottom: 85%"></div>
+                    </div>
+                  </div>
+                  <div class="chart-labels">
+                    <span>Jan</span>
+                    <span>Feb</span>
+                    <span>Mar</span>
+                    <span>Apr</span>
+                    <span>May</span>
+                    <span>Jun</span>
+                  </div>
+                  <div class="growth-stats">
+                    <div class="growth-item">
+                      <span class="growth-label">This Month</span>
+                      <span class="growth-value positive">+24.3%</span>
+                    </div>
+                    <div class="growth-item">
+                      <span class="growth-label">vs Last Year</span>
+                      <span class="growth-value positive">+186%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-section">
+              <div class="chart-card">
+                <div class="chart-title">Top Performing Venues</div>
+                <div class="venue-list">
+                  <div class="venue-item">
+                    <span>Grand Hotel Ballroom</span>
+                    <span class="venue-revenue">$342K</span>
+                  </div>
+                  <div class="venue-item">
+                    <span>Innovation Hub</span>
+                    <span class="venue-revenue">$298K</span>
+                  </div>
+                  <div class="venue-item">
+                    <span>Rooftop Terrace</span>
+                    <span class="venue-revenue">$187K</span>
+                  </div>
+                  <div class="venue-item">
+                    <span>Community Center</span>
+                    <span class="venue-revenue">$156K</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="chart-card">
+                <div class="chart-title">Customer Demographics</div>
+                <div class="demographics-chart">
+                  <div class="pie-chart">
+                    <div class="pie-slice slice-1" data-label="Corporate (45%)"></div>
+                    <div class="pie-slice slice-2" data-label="Individual (30%)"></div>
+                    <div class="pie-slice slice-3" data-label="Non-profit (15%)"></div>
+                    <div class="pie-slice slice-4" data-label="Government (10%)"></div>
+                  </div>
+                  <div class="demographics-legend">
+                    <div class="legend-item">
+                      <div class="legend-color" style="background: #3b82f6;"></div>
+                      <span>Corporate (45%)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-color" style="background: #22c55e;"></div>
+                      <span>Individual (30%)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-color" style="background: #f59e0b;"></div>
+                      <span>Non-profit (15%)</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-color" style="background: #ef4444;"></div>
+                      <span>Government (10%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" [class.active]="activeTab === 'settings'">
+            <!-- Settings Content -->
+            <div class="settings-section">
+              <div class="settings-card">
+                <div class="settings-title">Notification Preferences</div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Email Notifications</div>
+                    <div class="settings-description">Receive email alerts for new bookings</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">SMS Alerts</div>
+                    <div class="settings-description">Get text messages for urgent updates</div>
+                  </div>
+                  <div class="toggle" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Push Notifications</div>
+                    <div class="settings-description">Browser notifications for real-time updates</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <div class="settings-title">Event Management</div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Auto-confirm Bookings</div>
+                    <div class="settings-description">Automatically confirm recurring client bookings</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Calendar Integration</div>
+                    <div class="settings-description">Sync with Google Calendar and Outlook</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Invoice Auto-generation</div>
+                    <div class="settings-description">Generate invoices automatically after events</div>
+                  </div>
+                  <div class="toggle" (click)="toggleSetting($event)"></div>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <div class="settings-title">System Preferences</div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Dark Mode</div>
+                    <div class="settings-description">Use dark theme for better night viewing</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Advanced Analytics</div>
+                    <div class="settings-description">Enable detailed reporting and insights</div>
+                  </div>
+                  <div class="toggle active" (click)="toggleSetting($event)"></div>
+                </div>
+                <div class="settings-item">
+                  <div>
+                    <div class="settings-label">Data Export</div>
+                    <div class="settings-description">Allow CSV and PDF export of all data</div>
+                  </div>
+                  <div class="toggle" (click)="toggleSetting($event)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="california-footer">
+    <span>🏔️ Project California Live Demo - Running Real Docker Containers</span>
+    <div class="footer-actions">
+      <button mat-button color="warn" (click)="stopDockerContainers()" *ngIf="dockerRunning | async">
+        <mat-icon>stop</mat-icon>
+        Stop All Containers
+      </button>
+    </div>
+  </div>
+</div> 

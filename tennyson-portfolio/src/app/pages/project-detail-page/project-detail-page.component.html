@@ -1,0 +1,66 @@
+<div class="project-detail-container">
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading$ | async">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading project details...</p>
+  </div>
+
+  <!-- Project details -->
+  <ng-container *ngIf="project$ | async as currentProject; else notFoundOrError">
+    <div class="project-content">
+      <!-- Back navigation -->
+      <div class="back-nav">
+        <button mat-button color="primary" (click)="backToProjects()">
+          <mat-icon>arrow_back</mat-icon> Back to Projects
+        </button>
+      </div>
+
+      <!-- Project header -->
+      <div class="project-header">
+        <h1>{{ currentProject.title }}</h1>
+        <div class="tech-stack-chips">
+          <span class="tech-chip" *ngFor="let tech of currentProject.techStack">{{ tech }}</span>
+        </div>
+      </div>
+
+      <!-- Project details -->
+      <div class="project-info">
+        <div class="project-description">
+          <h2>Overview</h2>
+          <p [innerHTML]="currentProject.description"></p>
+        </div>
+
+        <div class="project-impacts" *ngIf="currentProject.impacts && currentProject.impacts.length > 0">
+          <h2>Key Impacts</h2>
+          <ul class="impact-list">
+            <li *ngFor="let impact of currentProject.impacts">{{ impact }}</li>
+          </ul>
+        </div>
+
+        <!-- Project links -->
+        <div class="project-links">
+          <a mat-raised-button color="primary" [href]="currentProject.githubUrl" target="_blank" *ngIf="currentProject.githubUrl">
+            <mat-icon>code</mat-icon> View Code
+          </a>
+          <button mat-raised-button color="accent" (click)="openProjectDemo()" *ngIf="currentProject.id === 'university-connect' || currentProject.id === 'corp.io' || currentProject.id === 'project-California' || currentProject.demoUrl">
+            <mat-icon>visibility</mat-icon> Live Demo
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Template for project not found or error -->
+  <ng-template #notFoundOrError>
+    <div *ngIf="!(isLoading$ | async)"> <!-- Only show if not actively loading -->
+      <!-- You can differentiate between error from facade (portfolioFacade.error$) and project simply not being found -->
+      <div class="error-container">
+        <p>Project not found or an error occurred.</p>
+        <button mat-button color="primary" (click)="backToProjects()">
+          <mat-icon>arrow_back</mat-icon> Back to Projects
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+</div>

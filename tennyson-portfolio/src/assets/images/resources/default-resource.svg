@@ -1,0 +1,6 @@
+<svg width="280" height="160" viewBox="0 0 280 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="280" height="160" fill="#f5f5f5"/>
+  <path d="M110 64H170V96H110V64Z" stroke="#ccc" stroke-width="2" fill="none"/>
+  <circle cx="140" cy="80" r="8" fill="#ccc"/>
+  <text x="140" y="120" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">Resource Image</text>
+</svg> 

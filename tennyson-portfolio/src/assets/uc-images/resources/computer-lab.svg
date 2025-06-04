@@ -1,0 +1,28 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#f5f5f5"/>
+  
+  <!-- Desk 1 -->
+  <rect x="30" y="30" width="80" height="40" fill="#e0e0e0" rx="2"/>
+  <rect x="50" y="30" width="40" height="25" fill="#ffffff" stroke="#cccccc"/>
+  <rect x="60" y="70" width="20" height="15" fill="#ffffff" stroke="#cccccc"/>
+  
+  <!-- Desk 2 -->
+  <rect x="30" y="100" width="80" height="40" fill="#e0e0e0" rx="2"/>
+  <rect x="50" y="100" width="40" height="25" fill="#ffffff" stroke="#cccccc"/>
+  <rect x="60" y="140" width="20" height="15" fill="#ffffff" stroke="#cccccc"/>
+  
+  <!-- Desk 3 -->
+  <rect x="190" y="30" width="80" height="40" fill="#e0e0e0" rx="2"/>
+  <rect x="210" y="30" width="40" height="25" fill="#ffffff" stroke="#cccccc"/>
+  <rect x="220" y="70" width="20" height="15" fill="#ffffff" stroke="#cccccc"/>
+  
+  <!-- Desk 4 -->
+  <rect x="190" y="100" width="80" height="40" fill="#e0e0e0" rx="2"/>
+  <rect x="210" y="100" width="40" height="25" fill="#ffffff" stroke="#cccccc"/>
+  <rect x="220" y="140" width="20" height="15" fill="#ffffff" stroke="#cccccc"/>
+  
+  <!-- Center table -->
+  <rect x="120" y="60" width="60" height="60" fill="#e0e0e0" rx="4"/>
+  
+  <text x="150" y="180" font-family="Arial" font-size="14" text-anchor="middle" fill="#666666">Computer Lab</text>
+</svg> 

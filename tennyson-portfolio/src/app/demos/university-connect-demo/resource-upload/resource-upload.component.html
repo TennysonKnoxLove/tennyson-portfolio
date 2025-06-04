@@ -1,0 +1,333 @@
+<div class="resource-upload-container">
+  <div class="upload-header">
+    <h1>Upload a Resource</h1>
+    <a routerLink="/projects/university-connect" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Back to University Connect
+    </a>
+  </div>
+
+  <mat-stepper linear #stepper>
+    <!-- Step 1: Basic Info -->
+    <mat-step [stepControl]="basicInfoForm" label="Basic Info">
+      <form [formGroup]="basicInfoForm">
+        <div class="step-content">
+          <h2>Basic Information</h2>
+          <p class="step-description">Enter the basic details of your resource.</p>
+          
+          <div class="form-group">
+            <p class="field-label">Resource Name</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput formControlName="name" placeholder="Enter a name for your resource">
+              <mat-error *ngIf="basicInfoForm.get('name')?.hasError('required')">Name is required</mat-error>
+              <mat-error *ngIf="basicInfoForm.get('name')?.hasError('minlength')">Name must be at least 3 characters</mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-group">
+            <p class="field-label">Description</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <textarea matInput formControlName="description" rows="4" placeholder="Describe your resource"></textarea>
+              <mat-error *ngIf="basicInfoForm.get('description')?.hasError('required')">Description is required</mat-error>
+              <mat-error *ngIf="basicInfoForm.get('description')?.hasError('minlength')">Description must be at least 10 characters</mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-group">
+            <p class="field-label">Category</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-select formControlName="category">
+                <mat-option value="Space">Space</mat-option>
+                <mat-option value="Equipment">Equipment</mat-option>
+                <mat-option value="Lab">Lab</mat-option>
+                <mat-option value="Service">Service</mat-option>
+                <mat-option value="Software">Software</mat-option>
+                <mat-option value="Academic">Academic</mat-option>
+              </mat-select>
+              <mat-error *ngIf="basicInfoForm.get('category')?.hasError('required')">Category is required</mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="tags-section">
+            <h3>Tags *</h3>
+            <p>Add tags to help users find your resource (required - at least one tag)</p>
+            
+            <div class="tag-input">
+              <div class="form-group">
+                <p class="field-label">Add Tag</p>
+                <mat-form-field appearance="outline" class="tag-field">
+                  <input matInput #tagInput placeholder="Enter a tag and press Enter" 
+                         (keydown.enter)="$event.preventDefault(); addTag(tagInput.value); tagInput.value = ''">
+                </mat-form-field>
+              </div>
+              <button mat-mini-fab color="primary" (click)="addTag(tagInput.value); tagInput.value = ''">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+            
+            <div class="tags-list" *ngIf="selectedTags.length">
+              <mat-chip-set>
+                <mat-chip *ngFor="let tag of selectedTags" (removed)="removeTag(tag)">
+                  {{tag}}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+            
+            <!-- Validation message for tags -->
+            <div class="tags-error" *ngIf="selectedTags.length === 0" style="color: #f44336; font-size: 12px; margin-top: 8px;">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">error</mat-icon>
+              At least one tag is required
+            </div>
+          </div>
+          
+          <div class="step-buttons">
+            <button mat-button matStepperNext [disabled]="!basicInfoForm.valid || selectedTags.length === 0">Next</button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    
+    <!-- Step 2: Images -->
+    <mat-step [stepControl]="imagesForm" label="Images">
+      <form [formGroup]="imagesForm">
+        <div class="step-content">
+          <h2>Resource Images</h2>
+          <p class="step-description">Upload images of your resource.</p>
+          
+          <div class="image-upload-container">
+            <div class="upload-card" [class.has-image]="uploadedImage">
+              <div class="upload-placeholder" *ngIf="!uploadedImage">
+                <mat-icon>cloud_upload</mat-icon>
+                <p>Click to upload an image</p>
+              </div>
+              <img *ngIf="uploadedImage" [src]="uploadedImage" alt="Uploaded image">
+              <input type="file" #fileInput (change)="onImageSelected($event)" accept="image/*" class="file-input">
+            </div>
+            
+            <button mat-stroked-button (click)="fileInput.click()">
+              <mat-icon>add_photo_alternate</mat-icon> 
+              {{ uploadedImage ? 'Change Image' : 'Upload Image' }}
+            </button>
+          </div>
+          
+          <div class="step-buttons">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    
+    <!-- Step 3: Pricing -->
+    <mat-step [stepControl]="pricingForm" label="Pricing">
+      <form [formGroup]="pricingForm">
+        <div class="step-content">
+          <h2>Pricing Information</h2>
+          <p class="step-description">Set the price for your resource.</p>
+          
+          <div class="form-group">
+            <p class="field-label">Price ($ per hour)</p>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="price" type="number" min="0" step="0.01" placeholder="Enter price">
+              <span matSuffix>USD</span>
+              <mat-error *ngIf="pricingForm.get('price')?.hasError('required')">Price is required</mat-error>
+              <mat-error *ngIf="pricingForm.get('price')?.hasError('min')">Price cannot be negative</mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="step-buttons">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext [disabled]="!pricingForm.valid">Next</button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    
+    <!-- Step 4: Location -->
+    <mat-step [stepControl]="locationForm" label="Location">
+      <form [formGroup]="locationForm">
+        <div class="step-content">
+          <h2>Location</h2>
+          <p class="step-description">Where is your resource located?</p>
+          
+          <div class="form-group">
+            <p class="field-label">Address</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput formControlName="address" placeholder="Enter street address">
+              <mat-error *ngIf="locationForm.get('address')?.hasError('required')">Address is required</mat-error>
+            </mat-form-field>
+          </div>
+          
+          <div class="location-grid">
+            <div class="form-group">
+              <p class="field-label">City</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="city" placeholder="Enter city">
+                <mat-error *ngIf="locationForm.get('city')?.hasError('required')">City is required</mat-error>
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label special-state">State</p>
+              <mat-form-field appearance="outline">
+                <mat-select formControlName="state">
+                  <mat-option value="AL">Alabama</mat-option>
+                  <mat-option value="AK">Alaska</mat-option>
+                  <mat-option value="AZ">Arizona</mat-option>
+                  <mat-option value="CA">California</mat-option>
+                  <mat-option value="CO">Colorado</mat-option>
+                  <mat-option value="NY">New York</mat-option>
+                  <mat-option value="TX">Texas</mat-option>
+                  <!-- Add more states as needed -->
+                </mat-select>
+                <mat-error *ngIf="locationForm.get('state')?.hasError('required')">State is required</mat-error>
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">ZIP Code</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="zip" placeholder="Enter ZIP code">
+                <mat-error *ngIf="locationForm.get('zip')?.hasError('required')">ZIP code is required</mat-error>
+                <mat-error *ngIf="locationForm.get('zip')?.hasError('pattern')">Please enter a valid ZIP code</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div class="step-buttons">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext [disabled]="!locationForm.valid">Next</button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    
+    <!-- Step 5: Availability -->
+    <mat-step [stepControl]="availabilityForm" label="Availability">
+      <form [formGroup]="availabilityForm">
+        <div class="step-content">
+          <h2>Availability</h2>
+          <p class="step-description">When is your resource available?</p>
+          
+          <div class="availability-grid">
+            <div class="form-group">
+              <p class="field-label">Monday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="monday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Tuesday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="tuesday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Wednesday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="wednesday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Thursday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="thursday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Friday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="friday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Saturday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="saturday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+            
+            <div class="form-group">
+              <p class="field-label">Sunday</p>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="sunday" placeholder="e.g., 9:00 AM - 5:00 PM">
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div class="step-buttons">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    
+    <!-- Step 6: Review & Publish -->
+    <mat-step label="Review & Publish">
+      <div class="step-content">
+        <h2>Review & Publish</h2>
+        <p class="step-description">Review your resource before publishing.</p>
+        
+        <mat-card class="review-card">
+          <mat-card-content>
+            <div class="review-section">
+              <h3>Basic Information</h3>
+              <p><strong>Name:</strong> {{ basicInfoForm.get('name')?.value }}</p>
+              <p><strong>Description:</strong> {{ basicInfoForm.get('description')?.value }}</p>
+              <p><strong>Category:</strong> {{ basicInfoForm.get('category')?.value }}</p>
+              <p><strong>Tags:</strong> {{ selectedTags.join(', ') || 'None' }}</p>
+            </div>
+            
+            <div class="review-section" *ngIf="uploadedImage">
+              <h3>Image</h3>
+              <img [src]="uploadedImage" alt="Resource image" class="review-image">
+            </div>
+            
+            <div class="review-section">
+              <h3>Pricing</h3>
+              <p><strong>Price:</strong> ${{ pricingForm.get('price')?.value || '0.00' }} per hour</p>
+            </div>
+            
+            <div class="review-section">
+              <h3>Location</h3>
+              <p><strong>Address:</strong> {{ locationForm.get('address')?.value }}</p>
+              <p><strong>City:</strong> {{ locationForm.get('city')?.value }}</p>
+              <p><strong>State:</strong> {{ locationForm.get('state')?.value }}</p>
+              <p><strong>ZIP Code:</strong> {{ locationForm.get('zip')?.value }}</p>
+            </div>
+            
+            <div class="review-section">
+              <h3>Availability</h3>
+              <p *ngIf="availabilityForm.get('monday')?.value"><strong>Monday:</strong> {{ availabilityForm.get('monday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('tuesday')?.value"><strong>Tuesday:</strong> {{ availabilityForm.get('tuesday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('wednesday')?.value"><strong>Wednesday:</strong> {{ availabilityForm.get('wednesday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('thursday')?.value"><strong>Thursday:</strong> {{ availabilityForm.get('thursday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('friday')?.value"><strong>Friday:</strong> {{ availabilityForm.get('friday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('saturday')?.value"><strong>Saturday:</strong> {{ availabilityForm.get('saturday')?.value }}</p>
+              <p *ngIf="availabilityForm.get('sunday')?.value"><strong>Sunday:</strong> {{ availabilityForm.get('sunday')?.value }}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <div class="step-buttons publish-buttons">
+          <button mat-button matStepperPrevious>Back</button>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="submitResource()" 
+            [disabled]="isSubmitting || !basicInfoForm.valid || !pricingForm.valid || !locationForm.valid">
+            {{ isSubmitting ? 'Publishing...' : 'Publish Resource' }}
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div> 
