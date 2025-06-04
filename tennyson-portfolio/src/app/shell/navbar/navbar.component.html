@@ -2,11 +2,14 @@
     <div class="container">
         <span class="logo" routerLink="/">Tennyson Love</span>
         <span class="spacer"></span>
-        <div class="nav-links">
-            <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-            <a mat-button routerLink="/projects" routerLinkActive="active">Projects</a>
-            <a mat-button routerLink="/about" routerLinkActive="active">About</a>
-            <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
+        <button mat-icon-button class="mobile-menu-button" (click)="toggleMobileMenu()">
+            <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+        </button>
+        <div class="nav-links" [class.mobile-menu-open]="isMobileMenuOpen">
+            <a mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="isMobileMenuOpen && toggleMobileMenu()">Home</a>
+            <a mat-button routerLink="/projects" routerLinkActive="active" (click)="isMobileMenuOpen && toggleMobileMenu()">Projects</a>
+            <a mat-button routerLink="/about" routerLinkActive="active" (click)="isMobileMenuOpen && toggleMobileMenu()">About</a>
+            <a mat-button routerLink="/contact" routerLinkActive="active" (click)="isMobileMenuOpen && toggleMobileMenu()">Contact</a>
         </div>
     </div>
 </mat-toolbar>

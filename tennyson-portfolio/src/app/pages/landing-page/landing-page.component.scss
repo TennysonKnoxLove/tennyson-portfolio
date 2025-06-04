@@ -280,9 +280,6 @@
 /* Featured Projects Styles */
 .featured-projects {
   padding: 4rem 1rem;
-  background: 
-    radial-gradient(ellipse at left center, rgba(255, 0, 230, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at right center, rgba(0, 194, 255, 0.03) 0%, transparent 50%);
   position: relative;
   
   &::before {
@@ -317,6 +314,7 @@
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  margin-right: 30px;
 }
 
 .featured-project-card {
