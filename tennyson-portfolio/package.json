@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:tennyson-portfolio": "node dist/tennyson-portfolio/server/server.mjs"
+    "serve:ssr:tennyson-portfolio": "node dist/tennyson-portfolio/server/server.mjs",
+    "heroku-postbuild": "npm run build"
   },
   "private": true,
   "dependencies": {
