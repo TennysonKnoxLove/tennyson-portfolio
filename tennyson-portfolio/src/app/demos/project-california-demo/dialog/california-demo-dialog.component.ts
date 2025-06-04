@@ -47,6 +47,8 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
   activeTab: string = 'events'; // Default to events tab
   showNotifications: boolean = false;
   showContainerLoading: boolean = false;
+  isMobileMenuOpen: boolean = false; // For outer nav - will be ignored or removed later if not needed
+  isAppNavOpen: boolean = false; // Added for .app-navbar hamburger menu
   
   private destroy$ = new Subject<void>();
 
@@ -187,5 +189,15 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
   toggleSetting(event: Event): void {
     const toggle = event.target as HTMLElement;
     toggle.classList.toggle('active');
+  }
+
+  // Toggle mobile menu (outer nav - will be ignored or removed later)
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  // Toggle .app-navbar mobile menu
+  toggleAppNav(): void {
+    this.isAppNavOpen = !this.isAppNavOpen;
   }
 } 

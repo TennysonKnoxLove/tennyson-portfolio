@@ -149,20 +149,24 @@
           <!-- App Navigation Bar -->
           <div class="app-navbar">
             <div class="navbar-left">
+              <!-- App Nav Hamburger Toggle -->
+              <button mat-icon-button class="app-nav-toggle" (click)="toggleAppNav()">
+                <mat-icon>{{ isAppNavOpen ? 'close' : 'menu' }}</mat-icon>
+              </button>
               <div class="app-logo">
                 <mat-icon>business</mat-icon>
                 <span>Project California - Event Management Platform</span>
               </div>
-              <div class="nav-links">
-                <a class="nav-link" [class.active]="activeTab === 'events'" (click)="switchApplicationTab('events')">
+              <div class="nav-links" [class.app-links-open]="isAppNavOpen">
+                <a class="nav-link" [class.active]="activeTab === 'events'" (click)="switchApplicationTab('events'); toggleAppNav();">
                   <mat-icon>event</mat-icon>
                   Events
                 </a>
-                <a class="nav-link" [class.active]="activeTab === 'analytics'" (click)="switchApplicationTab('analytics')">
+                <a class="nav-link" [class.active]="activeTab === 'analytics'" (click)="switchApplicationTab('analytics'); toggleAppNav();">
                   <mat-icon>analytics</mat-icon>
                   Analytics
                 </a>
-                <a class="nav-link" [class.active]="activeTab === 'settings'" (click)="switchApplicationTab('settings')">
+                <a class="nav-link" [class.active]="activeTab === 'settings'" (click)="switchApplicationTab('settings'); toggleAppNav();">
                   <mat-icon>settings</mat-icon>
                   Settings
                 </a>

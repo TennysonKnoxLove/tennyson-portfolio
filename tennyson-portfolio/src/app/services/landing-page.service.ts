@@ -37,7 +37,7 @@ export class LandingPageService {
     return {
       name: 'Tennyson Love',
       title: 'Full-Stack Software Engineer',
-      summary: 'Building modern, sleek applications with Angular, Python, and Docker. Specialized in NgRx state management architecture for scalable frontend solutions.'
+      summary: 'Full-stack engineer with hands-on experience across a wide range of modern tech stacks — from React, Angular, and Django to TypeScript, Tailwind, and AWS. Proven ability to ship fast, scale smart, and adapt quickly in startup settings.'
     };
   }
   

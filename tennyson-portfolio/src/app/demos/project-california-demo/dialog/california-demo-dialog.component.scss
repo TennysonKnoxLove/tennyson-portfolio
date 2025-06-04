@@ -1157,13 +1157,28 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 16px;
+}
+
+.app-nav-toggle {
+  display: none;
+  color: var(--california-text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 8px;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
 }
 
 .app-logo {
@@ -1696,5 +1711,99 @@
   
   .step.pending & {
     color: #64748b;
+  }
+}
+
+// Responsive Design for .app-navbar (inner nav)
+@media (max-width: 992px) {
+  .app-navbar {
+    padding: 12px 16px;
+  }
+
+  .navbar-left {
+    position: static;
+  }
+
+  .app-nav-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--california-bg-secondary, #1e293b);
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--california-border, #334155);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 99;
+
+    &.app-links-open {
+      display: flex;
+    }
+
+    .nav-link {
+      width: 100%;
+      padding: 12px 24px;
+      justify-content: flex-start;
+      border-radius: 0;
+
+      &.active {
+        background: var(--california-primary, #2563eb);
+        color: white;
+        box-shadow: none;
+
+        &::after {
+          display: none;
+        }
+      }
+
+      &:hover {
+        background: var(--california-hover, #475569);
+        color: var(--california-text-primary, #f1f5f9);
+      }
+    }
+  }
+}
+
+// KEEP existing @media (max-width: 768px) for other .california-dialog-container elements
+@media (max-width: 768px) {
+  .california-header {
+    padding: 12px 16px;
+    
+    h2 {
+      font-size: 16px;
+    }
+  }
+  
+  .california-nav {
+    padding: 0 16px;
+  
+  }
+  
+  .nav-tab {
+    white-space: nowrap;
+    min-width: 120px;
+  }
+  
+  .terminal-view, .application-view {
+    padding: 16px;
+  }
+  
+  .containers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-header .app-controls {
+    flex-direction: column;
+  }
+  
+  .california-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
   }
 } 
