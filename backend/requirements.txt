@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+prisma
+python-dotenv
+psycopg2-binary # For PostgreSQL
+# Add any other specific backend dependencies if needed 

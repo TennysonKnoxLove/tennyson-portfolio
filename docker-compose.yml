@@ -13,13 +13,19 @@ services:
       - api
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/portfolio
+      - PORT=8000
     depends_on:
       - db
+    volumes:
+      - ./backend:/app/backend
+      - ./prisma:/app/prisma
 
   db:
     image: postgres:15-alpine
