@@ -1,1 +1,1 @@
-web: ls -R ./dist && node dist/tennyson-portfolio/server/server.mjs 
+web: node dist/tennyson-portfolio/server/server.mjs 
