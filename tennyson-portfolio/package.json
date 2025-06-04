@@ -4,11 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npx ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:tennyson-portfolio": "node dist/tennyson-portfolio/server/server.mjs",
-    "heroku-postbuild": "echo '>>>> HEROKU-POSTBUILD SCRIPT IS RUNNING <<<<' && npm run build && echo '>>>> BUILD COMMAND FINISHED. CHECKING DIST... <<<<' && ls -R dist"
+    "heroku-postbuild": "npm run build"
   },
   "private": true,
   "dependencies": {
