@@ -35,5 +35,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Start the server
-ENTRYPOINT ["node"]
-CMD ["dist/tennyson-portfolio/server/server.mjs"] 
+ENTRYPOINT ["/bin/sh", "-c", "node dist/tennyson-portfolio/server/server.mjs"] 
