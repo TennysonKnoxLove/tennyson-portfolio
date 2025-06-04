@@ -31,11 +31,15 @@
                 "input": "public"
               },
               {
+                "glob": "favicon.png",
+                "input": "src",
+                "output": "/"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
-              },
-              "src/favicon.png"
+              }
             ],
             "styles": [
               "@angular/material/prebuilt-themes/rose-red.css",
@@ -104,11 +108,15 @@
                 "input": "public"
               },
               {
+                "glob": "favicon.png",
+                "input": "src",
+                "output": "/"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
-              },
-              "src/favicon.png"
+              }
             ],
             "styles": [
               "@angular/material/prebuilt-themes/rose-red.css",
