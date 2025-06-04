@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:tennyson-portfolio": "node dist/tennyson-portfolio/server/server.mjs",
-    "heroku-postbuild": "npm run build && echo '>>>> Build Succeeded. Contents of /workspace/tennyson-portfolio after build: (root level)' && ls -alph && echo '>>>> Contents of /workspace/tennyson-portfolio/dist: (if it exists)' && ls -alph dist || (echo '>>>> npm run build failed OR dist directory not found after build.' && exit 1)"
+    "heroku-postbuild": "echo '>>>> HEROKU-POSTBUILD SCRIPT IS RUNNING <<<<' && npm run build && echo '>>>> BUILD COMMAND FINISHED. CHECKING DIST... <<<<' && ls -R dist"
   },
   "private": true,
   "dependencies": {
