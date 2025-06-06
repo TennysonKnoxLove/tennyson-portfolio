@@ -16,7 +16,7 @@ export class UserApi {
    * Login or signup - creates user if doesn't exist
    */
   loginOrSignup(loginData: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, loginData);
+    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login/`, loginData);
   }
 
 } 

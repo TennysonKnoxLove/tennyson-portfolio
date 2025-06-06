@@ -59,8 +59,9 @@ Component → Facade → Action → Effect → Data Service → API → Backend 
 cd backend
 python -m uvicorn main:app --reload
 
-# 2. Backend should be running on http://localhost:8000
-# 3. Database should be initialized (SQLite with Prisma)
+# 2. Backend should be running on http://localhost:8000 for local development.
+# 3. The production frontend at https://www.tennyson-love.com will point to your deployed backend.
+# 4. Database should be initialized (PostgreSQL with Prisma)
 ```
 
 ### 🗄️ **Database Schema**

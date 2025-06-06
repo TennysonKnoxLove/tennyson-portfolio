@@ -28,7 +28,7 @@ export class UniversityConnectApi {
    * Real login endpoint that calls backend to find or create user
    */
   loginDemo(loginData: LoginRequest): Observable<UserResponse> {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/api/auth/login`, loginData).pipe(
+    return this.http.post<LoginResponse>(`${this.baseUrl}/api/auth/login/`, loginData).pipe(
       map(response => response.user)
     );
   }

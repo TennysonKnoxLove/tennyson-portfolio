@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { delay, catchError } from 'rxjs/operators';
 import { DockerResponse, DockerContainer } from '../types/california-demo.types';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CaliforniaApiService {
-  private readonly API_BASE = 'http://localhost:8000/api/docker';
+  private readonly API_BASE = `${environment.apiUrl}/api/docker`;
 
   constructor(private http: HttpClient) {}
 

@@ -132,7 +132,7 @@ class DockerRepository:
     async def california_get_app_url():
         return {
             "success": True,
-            "url": "http://localhost:3000",
+            "url": "https://www.tennyson-love.com",
             "message": "California application is available",
             "status": "ready",
             "html": """
