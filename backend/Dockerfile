@@ -33,7 +33,8 @@ COPY ../prisma ./prisma
 
 # Generate Prisma Client
 # This is a crucial step for Prisma to work correctly in production.
-RUN npx prisma generate --schema=./prisma/schema.prisma
+# We specify the exact version of the prisma CLI that is compatible with the prisma-client-py version.
+RUN npx prisma@5.17.0 generate --schema=./prisma/schema.prisma
 
 # Copy the rest of the backend application code into the container
 COPY . .
