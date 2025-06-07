@@ -5,4 +5,5 @@ python-dotenv
 pydantic
 Jinja2
 psycopg2-binary # For PostgreSQL
+python-multipart
 # Add any other specific backend dependencies if needed 
