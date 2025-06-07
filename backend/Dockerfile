@@ -39,6 +39,9 @@ RUN npx prisma@5.17.0 generate --schema=./prisma/schema.prisma
 # Copy the rest of the backend application code into the container
 COPY . .
 
+# Create the directory for uploaded images so the app can mount it on startup
+RUN mkdir -p uploaded-images
+
 # Expose the port the app runs on
 EXPOSE 8000
 
