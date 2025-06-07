@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PORT 8000
 
 # Set the working directory in the container
-WORKDIR /app/backend
+WORKDIR /app
 
 # Install system dependencies that might be needed by psycopg2 or other libs
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,25 +21,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+# Copy the requirements file from the backend directory
+COPY backend/requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the Prisma schema to generate the client
-COPY ../prisma ./prisma
+COPY prisma ./prisma
 
 # Generate Prisma Client
 # This is a crucial step for Prisma to work correctly in production.
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# Copy the rest of the backend application code into the container
-COPY . .
+# Copy the backend application code into the container
+COPY backend/ .
 
 # Expose the port the app runs on
 EXPOSE 8000
 
 # Define the command to run the application
-# Ensure main:app points to your FastAPI instance in your main.py
+# WORKDIR is /app and we copied backend code into it, so this is correct.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
