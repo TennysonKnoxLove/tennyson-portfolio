@@ -2,5 +2,7 @@ fastapi
 uvicorn[standard]
 prisma
 python-dotenv
+pydantic
+Jinja2
 psycopg2-binary # For PostgreSQL
 # Add any other specific backend dependencies if needed 

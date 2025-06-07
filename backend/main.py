@@ -5,6 +5,13 @@ from contextlib import asynccontextmanager
 from controller import router
 from repository import prisma
 import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Centralize environment configuration by loading from the .env file in the prisma directory.
+# This ensures both the Prisma CLI and the Python application use the same database URL.
+env_path = Path(__file__).parent.parent / 'prisma' / '.env'
+load_dotenv(dotenv_path=env_path)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

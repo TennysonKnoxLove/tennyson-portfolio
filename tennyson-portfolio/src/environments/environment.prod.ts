@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://www.tennyson-love.com'
+  apiUrl: 'https://localhost:8000'
 };
