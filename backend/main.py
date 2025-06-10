@@ -46,4 +46,4 @@ app.add_middleware(
 app.include_router(router, prefix="/api")
 
 # Mount static files for uploaded images
-app.mount("/uploaded-images", StaticFiles(directory="backend/uploaded-images"), name="uploaded-images") 
+app.mount("/uploaded-images", StaticFiles(directory="uploaded-images"), name="uploaded-images") 
