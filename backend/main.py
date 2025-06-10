@@ -42,8 +42,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include router with /api prefix
-app.include_router(router, prefix="/api")
+# Include router
+app.include_router(router)
 
 # Mount static files for uploaded images
 app.mount("/uploaded-images", StaticFiles(directory="uploaded-images"), name="uploaded-images") 
