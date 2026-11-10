@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { EMPTY, of } from 'rxjs';
+import { map, catchError, switchMap, withLatestFrom } from 'rxjs/operators';
 import * as UniversityConnectActions from './university-connect.actions';
+import { ResourceForm } from './university-connect.state';
+import * as UniversityConnectSelectors from './university-connect.selectors';
 import { 
   UniversityConnectDataService,
   LoginDemoResponse,
@@ -15,6 +18,7 @@ import {
 export class UniversityConnectEffects {
   private actions$ = inject(Actions);
   private dataService = inject(UniversityConnectDataService);
+  private store = inject(Store);
 
   // Authentication Effects (Demo only - for UI demo purposes)
   loginDemo$ = createEffect(() =>
@@ -48,6 +52,30 @@ export class UniversityConnectEffects {
           })))
         )
       )
+    )
+  );
+
+  // Attach the signed-in user, store tags, and uploaded image before the API call.
+  preparePublishResource$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UniversityConnectActions.publishResourceRequested),
+      withLatestFrom(
+        this.store.select(UniversityConnectSelectors.selectCurrentUser),
+        this.store.select(UniversityConnectSelectors.selectTags),
+        this.store.select(UniversityConnectSelectors.selectUploadedImageUrls),
+        this.store.select(UniversityConnectSelectors.selectResourceForm)
+      ),
+      switchMap(([{ resourceForm }, user, tags, imageUrls, storedForm]) => {
+        if (!user) {
+          return EMPTY;
+        }
+
+        const form = resourceForm ?? storedForm;
+        return of(UniversityConnectActions.publishResource({
+          resourceForm: withStoredMedia(form, tags, imageUrls),
+          userId: user.id
+        }));
+      })
     )
   );
 
@@ -119,4 +147,12 @@ export class UniversityConnectEffects {
       )
     )
   );
+}
+
+function withStoredMedia(form: ResourceForm, tags: string[], imageUrls: string[]): ResourceForm {
+  return {
+    ...form,
+    tags: form.tags?.length ? form.tags : tags,
+    image: imageUrls[0] ?? form.image
+  };
 } 

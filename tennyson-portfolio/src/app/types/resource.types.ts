@@ -19,18 +19,47 @@ export interface ResourceLocation {
   state: string;
 }
 
-export interface Availability {
-  monday?: string;
-  tuesday?: string;
-  wednesday?: string;
-  thursday?: string;
-  friday?: string;
-  saturday?: string;
-  sunday?: string;
+export const WEEK_DAYS = [
+  { key: 'monday', label: 'Monday', shortLabel: 'Mon' },
+  { key: 'tuesday', label: 'Tuesday', shortLabel: 'Tue' },
+  { key: 'wednesday', label: 'Wednesday', shortLabel: 'Wed' },
+  { key: 'thursday', label: 'Thursday', shortLabel: 'Thu' },
+  { key: 'friday', label: 'Friday', shortLabel: 'Fri' },
+  { key: 'saturday', label: 'Saturday', shortLabel: 'Sat' },
+  { key: 'sunday', label: 'Sunday', shortLabel: 'Sun' },
+] as const;
+
+export type DayOfWeek = (typeof WEEK_DAYS)[number]['key'];
+
+export interface DayHours {
+  start: string;
+  end: string;
 }
 
-export interface ResourcesResponse {
-  resources: Resource[];
+export type Availability = Partial<Record<DayOfWeek, DayHours>>;
+
+export function availabilityFromHours(
+  hoursByDay: Partial<Record<DayOfWeek, DayHours>> | null | undefined
+): Availability {
+  const availability: Availability = {};
+  if (!hoursByDay) {
+    return availability;
+  }
+
+  for (const day of WEEK_DAYS) {
+    const hours = hoursByDay[day.key];
+    const start = hours?.start?.trim() ?? '';
+    if (!start) {
+      continue;
+    }
+
+    availability[day.key] = {
+      start,
+      end: hours?.end?.trim() ?? ''
+    };
+  }
+
+  return availability;
 }
 
 export interface ResourceFilter {
@@ -54,7 +83,7 @@ export interface ResourceCreateRequest {
   city: string;
   state: string;
   zipCode: string;
-  availability: Record<string, any>;
+  availability: Availability;
   image?: string;
 }
 
@@ -70,19 +99,9 @@ export interface ResourceResponse {
   city: string;
   state: string;
   zipCode: string;
-  availability: Record<string, any>;
+  availability: Availability;
   resourceOwner: string;
   status: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface CreateResourceResponse {
-  resource: ResourceResponse;
-  message: string;
-}
-
-export interface ImageUploadResponse {
-  filename: string;
-  url: string;
 } 

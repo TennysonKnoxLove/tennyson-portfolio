@@ -78,11 +78,6 @@ export const closeWebhookSuccessModal = createAction(
   '[corp] Close Webhook Success Modal'
 );
 
-// Export Actions (Demo)
-export const exportToCSVDemo = createAction(
-  '[corp] Export To CSV Demo'
-);
-
 // Reset Actions
 export const resetcorpState = createAction(
   '[corp] Reset State'

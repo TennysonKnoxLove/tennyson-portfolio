@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../types/project.types';
-import { UniversityConnectDialogService } from '../demos/university-connect-demo/uc-services/university-connect-dialog.service';
+import { UniversityConnectDialogService } from '../demos/university-connect-demo/services/university-connect-dialog.service';
 import { corpDemoDialogService } from '../demos/corp-demo/service/corp-demo-dialog.service';
-import { CaliforniaDemoDialogService } from '../demos/project-california-demo/service/california-demo-dialog.service';
+import { CaliforniaDemoDialogService } from '../demos/project-california-demo/services/california-demo-dialog.service';
 
 @Injectable({
   providedIn: 'root'

@@ -52,14 +52,9 @@ export const removeTag = createAction(
   props<{ index: number }>()
 );
 
-export const updateCurrentTag = createAction(
-  '[University Connect] Update Current Tag',
-  props<{ tag: string }>()
-);
-
 export const addImage = createAction(
   '[University Connect] Add Image',
-  props<{ file: File; previewUrl: string }>()
+  props<{ previewUrl: string }>()
 );
 
 export const removeImage = createAction(
@@ -84,6 +79,11 @@ export const uploadImageFailure = createAction(
 );
 
 // Real Resource Publishing Actions
+export const publishResourceRequested = createAction(
+  '[University Connect] Publish Resource Requested',
+  props<{ resourceForm?: ResourceForm }>()
+);
+
 export const publishResource = createAction(
   '[University Connect] Publish Resource',
   props<{ resourceForm: ResourceForm; userId: string }>()
@@ -199,13 +199,4 @@ export const resetFilterForm = createAction(
 export const updateResourceForm = createAction(
   '[University Connect] Update Resource Form', 
   props<{ formField: string; value: string }>()
-);
-
-export const resetResourceForm = createAction(
-  '[University Connect] Reset Resource Form'
-);
-
-// Error Actions
-export const clearError = createAction(
-  '[University Connect] Clear Error'
 ); 

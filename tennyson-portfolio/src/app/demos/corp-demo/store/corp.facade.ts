@@ -121,11 +121,6 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.closeWebhookSuccessModal());
   }
 
-  // Export Operations (Demo)
-  exportToCSVDemo(): void {
-    this.store.dispatch(corpActions.exportToCSVDemo());
-  }
-
   // Utility Operations
   clearError(): void {
     this.store.dispatch(corpActions.clearError());

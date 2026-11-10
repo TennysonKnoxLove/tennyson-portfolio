@@ -1,4 +1,4 @@
-import { Resource, ResourceFilter } from '../../../types/resource.types';
+import { Availability, Resource, ResourceFilter } from '../../../types/resource.types';
 import { UserResponse } from '../../../types/user.types';
 
 export enum DemoView {
@@ -11,7 +11,6 @@ export enum DemoView {
 
 export interface LoginForm {
   username: string;
-  rememberMe: boolean;
 }
 
 export interface ResourceForm {
@@ -32,24 +31,69 @@ export interface ResourceForm {
   city: string;
   state: string;
   zipCode: string;
-  
-  // Availability
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
-  saturday: string;
-  sunday: string;
-  
-  // End times
-  mondayEnd: string;
-  tuesdayEnd: string;
-  wednesdayEnd: string;
-  thursdayEnd: string;
-  fridayEnd: string;
-  saturdayEnd: string;
-  sundayEnd: string;
+
+  // Hours keyed by weekday. A missing day means closed.
+  availability: Availability;
+}
+
+export function createEmptyResourceForm(): ResourceForm {
+  return {
+    resourceName: '',
+    description: '',
+    category: '',
+    price: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    availability: {},
+  };
+}
+
+export interface ResourceFormValidation {
+  isValid: boolean;
+  errors: string[];
+}
+
+export function validateResourceForm(resourceForm: ResourceForm): ResourceFormValidation {
+  const errors: string[] = [];
+
+  if (!resourceForm.resourceName.trim()) {
+    errors.push('Resource name is required');
+  }
+
+  if (!resourceForm.description.trim()) {
+    errors.push('Description is required');
+  }
+
+  if (!resourceForm.category) {
+    errors.push('Category is required');
+  }
+
+  if (!resourceForm.price || parseFloat(resourceForm.price.toString()) <= 0) {
+    errors.push('Valid price is required');
+  }
+
+  if (!resourceForm.address.trim()) {
+    errors.push('Address is required');
+  }
+
+  if (!resourceForm.city.trim()) {
+    errors.push('City is required');
+  }
+
+  if (!resourceForm.state.trim()) {
+    errors.push('State is required');
+  }
+
+  if (!resourceForm.zipCode.trim()) {
+    errors.push('ZIP code is required');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 }
 
 export interface UniversityConnectState {
@@ -63,8 +107,6 @@ export interface UniversityConnectState {
   // Upload State
   currentUploadStep: number;
   tags: string[];
-  currentTag: string;
-  uploadedImages: File[];
   imagePreviewUrls: string[];
   uploadedImageUrls: string[];
 
@@ -103,12 +145,6 @@ export interface UniversityConnectState {
 
   // Error State
   error: string | null;
-
-  // Form Validation
-  formValidation: {
-    isValid: boolean;
-    errors: string[];
-  };
 }
 
 export const initialUniversityConnectState: UniversityConnectState = {
@@ -117,8 +153,6 @@ export const initialUniversityConnectState: UniversityConnectState = {
   currentUser: null,
   currentUploadStep: 1,
   tags: [],
-  currentTag: '',
-  uploadedImages: [],
   imagePreviewUrls: [],
   uploadedImageUrls: [],
   allResources: [],
@@ -133,30 +167,7 @@ export const initialUniversityConnectState: UniversityConnectState = {
     availabilityFrom: '',
     availabilityTo: '',
   },
-  resourceForm: {
-    resourceName: '',
-    description: '',
-    category: '',
-    price: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    monday: '',
-    tuesday: '',
-    wednesday: '',
-    thursday: '',
-    friday: '',
-    saturday: '',
-    sunday: '',
-    mondayEnd: '',
-    tuesdayEnd: '',
-    wednesdayEnd: '',
-    thursdayEnd: '',
-    fridayEnd: '',
-    saturdayEnd: '',
-    sundayEnd: '',
-  },
+  resourceForm: createEmptyResourceForm(),
   showPaymentOverlay: false,
   selectedResource: null,
   showDeleteConfirmModal: false,
@@ -167,9 +178,5 @@ export const initialUniversityConnectState: UniversityConnectState = {
   isLoadingResources: false,
   isLoadingUserResources: false,
   isSubmitting: false,
-  error: null,
-  formValidation: {
-    isValid: true,
-    errors: []
-  }
+  error: null
 }; 

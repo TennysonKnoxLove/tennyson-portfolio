@@ -854,14 +854,6 @@
 .success-modal-content {
   padding: 0 24px 24px;
   
-  .success-message {
-    color: #6b7280;
-    margin-bottom: 20px;
-    font-size: 14px;
-    text-align: center;
-    display: none; // Hide the raw message since we're showing details
-  }
-  
   .webhook-details {
     background: #f9fafb;
     border: 1px solid #e5e7eb;
@@ -958,27 +950,7 @@
       
       > div {
         border-bottom: 1px solid #f3f4f6;
-        
-        &:before {
-          content: attr(data-label) ': ';
-          font-weight: 600;
-          color: #374151;
-        }
       }
-    }
-  }
-}
-
-/* CSV Export Dialog Panel */
-.csv-export-dialog-panel {
-  .mat-mdc-dialog-container {
-    --mdc-dialog-container-color: transparent;
-    box-shadow: none;
-    
-    .mat-mdc-dialog-surface {
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
     }
   }
 } 

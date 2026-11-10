@@ -63,11 +63,9 @@ export const selectNumberFilters = createSelector(
 export const selectFilteredMessageLogs = createSelector(
   selectMessageLogs,
   selectNumberFilters,
-  selectDateFilters,
-  (messageLogs, numberFilters, dateFilters) => {
+  (messageLogs, numberFilters) => {
     let filteredLogs = [...messageLogs];
 
-    // Apply number filters
     if (numberFilters.fromNumber) {
       filteredLogs = filteredLogs.filter(log => 
         log.from.includes(numberFilters.fromNumber)
@@ -78,11 +76,6 @@ export const selectFilteredMessageLogs = createSelector(
       filteredLogs = filteredLogs.filter(log => 
         log.to.includes(numberFilters.toNumber)
       );
-    }
-
-    // Date filtering would be implemented here if needed
-    if (dateFilters.startDate || dateFilters.endDate) {
-      // Implementation for date filtering
     }
 
     return filteredLogs;
@@ -106,11 +99,6 @@ export const selectWebhookSuccessMessage = createSelector(
 );
 
 // Loading selectors
-export const selectIsLoading = createSelector(
-  selectcorpState,
-  (state) => state.isLoading
-);
-
 export const selectIsSendingSMS = createSelector(
   selectcorpState,
   (state) => state.isSendingSMS
@@ -139,9 +127,6 @@ export const selectcorpViewModel = createSelector(
   selectWebhookSuccessMessage,
   selectDateFilters,
   selectNumberFilters,
-  selectIsSendingSMS,
-  selectIsCreatingWebhook,
-  selectError,
   (
     currentView,
     isFullscreen,
@@ -152,10 +137,7 @@ export const selectcorpViewModel = createSelector(
     showWebhookSuccessModal,
     webhookSuccessMessage,
     dateFilters,
-    numberFilters,
-    isSendingSMS,
-    isCreatingWebhook,
-    error
+    numberFilters
   ) => ({
     currentView,
     isFullscreen,
@@ -168,9 +150,6 @@ export const selectcorpViewModel = createSelector(
     startDate: dateFilters.startDate,
     endDate: dateFilters.endDate,
     fromNumberFilter: numberFilters.fromNumber,
-    toNumberFilter: numberFilters.toNumber,
-    isSendingSMS,
-    isCreatingWebhook,
-    error
+    toNumberFilter: numberFilters.toNumber
   })
 ); 

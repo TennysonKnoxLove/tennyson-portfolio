@@ -1,22 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, map } from 'rxjs/operators';
 import { DockerContainer, CaliforniaView } from '../types/california-demo.types';
 import { CaliforniaFacadeService } from '../store/california.facade';
-import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-california-demo-dialog',
@@ -26,16 +18,8 @@ import { SafeHtml } from '@angular/platform-browser';
   imports: [
     CommonModule,
     FormsModule,
-    MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatTabsModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCardModule,
-    MatSlideToggleModule,
-    MatBadgeModule,
-    MatMenuModule,
     MatProgressSpinnerModule
   ]
 })
@@ -47,8 +31,7 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
   activeTab: string = 'events'; // Default to events tab
   showNotifications: boolean = false;
   showContainerLoading: boolean = false;
-  isMobileMenuOpen: boolean = false; // For outer nav - will be ignored or removed later if not needed
-  isAppNavOpen: boolean = false; // Added for .app-navbar hamburger menu
+  isAppNavOpen: boolean = false;
   
   private destroy$ = new Subject<void>();
 
@@ -57,29 +40,8 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
     public californiaFacade: CaliforniaFacadeService
   ) {}
 
-  // Observable state from facade (as getters to avoid initialization issues)
   get viewModel$(): Observable<any> {
     return this.californiaFacade.viewModel$;
-  }
-
-  get dockerContainers$(): Observable<DockerContainer[]> {
-    return this.californiaFacade.dockerContainers$;
-  }
-
-  get terminalOutput$(): Observable<string[]> {
-    return this.californiaFacade.terminalOutput$;
-  }
-
-  get isExecutingCommand$(): Observable<boolean> {
-    return this.californiaFacade.isExecutingCommand$;
-  }
-
-  get isApplicationReady$(): Observable<boolean> {
-    return this.californiaFacade.isApplicationReady$;
-  }
-
-  get runningContainerCount$(): Observable<number> {
-    return this.californiaFacade.runningContainerCount$;
   }
 
   // Template properties - extract from viewModel$
@@ -113,10 +75,6 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
 
   get isExecutingCommand(): Observable<boolean> {
     return this.viewModel$.pipe(map(vm => vm?.isExecutingCommand || false));
-  }
-
-  get applicationHtml(): Observable<SafeHtml | null> {
-    return this.viewModel$.pipe(map(vm => vm?.applicationHtml || null));
   }
 
   ngOnInit(): void {
@@ -166,15 +124,6 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
     this.californiaFacade.switchView(CaliforniaView.TERMINAL);
   }
 
-  // Helper methods for template - delegate to facade
-  getContainerStatusColor(status: string): string {
-    return this.californiaFacade.getContainerStatusColor(status);
-  }
-
-  getContainerStatusIcon(status: string): string {
-    return this.californiaFacade.getContainerStatusIcon(status);
-  }
-
   // Application tab switching
   switchApplicationTab(tab: string): void {
     this.activeTab = tab;
@@ -189,11 +138,6 @@ export class CaliforniaDemoDialogComponent implements OnInit, OnDestroy {
   toggleSetting(event: Event): void {
     const toggle = event.target as HTMLElement;
     toggle.classList.toggle('active');
-  }
-
-  // Toggle mobile menu (outer nav - will be ignored or removed later)
-  toggleMobileMenu(): void {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
   // Toggle .app-navbar mobile menu

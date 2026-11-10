@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
-import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { DockerResponse, DockerContainer } from '../types/california-demo.types';
 import { CaliforniaApiService } from '../api/california.api';
 
@@ -10,10 +9,7 @@ import { CaliforniaApiService } from '../api/california.api';
 })
 export class CaliforniaDataService {
 
-  constructor(
-    private californiaApi: CaliforniaApiService,
-    private sanitizer: DomSanitizer
-  ) {}
+  constructor(private californiaApi: CaliforniaApiService) {}
 
   startContainers(): Observable<DockerResponse> {
     return this.californiaApi.startContainers().pipe(
@@ -37,7 +33,7 @@ export class CaliforniaDataService {
     return this.californiaApi.getContainerStatus();
   }
 
-  checkApplicationHealth(): Observable<DockerResponse & { applicationHtml?: SafeHtml }> {
+  checkApplicationHealth(): Observable<DockerResponse> {
     return this.californiaApi.getApplicationHtml().pipe(
       map((response: any) => {
         if (response.success && response.html) {

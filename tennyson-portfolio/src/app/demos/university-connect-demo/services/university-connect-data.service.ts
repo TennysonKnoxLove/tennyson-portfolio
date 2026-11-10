@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Resource } from '../../../types/resource.types';
+import { Resource, availabilityFromHours } from '../../../types/resource.types';
 import { UserResponse } from '../../../types/user.types';
 import { LoginForm, ResourceForm } from '../store/university-connect.state';
 import { UniversityConnectApi } from '../api/university-connect.api';
@@ -59,40 +59,6 @@ export class UniversityConnectDataService {
     console.log('📋 Publishing resource with form data:', resourceForm);
     console.log('🏷️ Tags from form:', resourceForm.tags);
     
-    // Convert form data to API format
-    const availability: Record<string, any> = {};
-    
-    if (resourceForm.monday) {
-      availability['monday'] = { 
-        start: resourceForm.monday, 
-        end: resourceForm.mondayEnd 
-      };
-    }
-    if (resourceForm.tuesday) {
-      availability['tuesday'] = { 
-        start: resourceForm.tuesday, 
-        end: resourceForm.tuesdayEnd 
-      };
-    }
-    if (resourceForm.wednesday) {
-      availability['wednesday'] = { 
-        start: resourceForm.wednesday, 
-        end: resourceForm.wednesdayEnd 
-      };
-    }
-    if (resourceForm.thursday) {
-      availability['thursday'] = { 
-        start: resourceForm.thursday, 
-        end: resourceForm.thursdayEnd 
-      };
-    }
-    if (resourceForm.friday) {
-      availability['friday'] = { 
-        start: resourceForm.friday, 
-        end: resourceForm.fridayEnd 
-      };
-    }
-
     const resourceData = {
       name: resourceForm.resourceName.trim(),
       description: resourceForm.description.trim(),
@@ -103,7 +69,7 @@ export class UniversityConnectDataService {
       city: resourceForm.city.trim(),
       state: resourceForm.state.trim(),
       zipCode: resourceForm.zipCode.trim(),
-      availability: availability,
+      availability: availabilityFromHours(resourceForm.availability),
       image: resourceForm.image || undefined
     };
 
@@ -137,49 +103,5 @@ export class UniversityConnectDataService {
    */
   deleteResource(resourceId: string, userId: string): Observable<DeleteResourceResponse> {
     return this.api.deleteResource(resourceId, userId);
-  }
-
-  /**
-   * Validation helpers
-   */
-  validateResourceForm(resourceForm: ResourceForm): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!resourceForm.resourceName.trim()) {
-      errors.push('Resource name is required');
-    }
-
-    if (!resourceForm.description.trim()) {
-      errors.push('Description is required');
-    }
-
-    if (!resourceForm.category) {
-      errors.push('Category is required');
-    }
-
-    if (!resourceForm.price || parseFloat(resourceForm.price.toString()) <= 0) {
-      errors.push('Valid price is required');
-    }
-
-    if (!resourceForm.address.trim()) {
-      errors.push('Address is required');
-    }
-
-    if (!resourceForm.city.trim()) {
-      errors.push('City is required');
-    }
-
-    if (!resourceForm.state.trim()) {
-      errors.push('State is required');
-    }
-
-    if (!resourceForm.zipCode.trim()) {
-      errors.push('ZIP code is required');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
   }
 } 

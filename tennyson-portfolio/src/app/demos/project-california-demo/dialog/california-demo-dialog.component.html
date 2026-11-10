@@ -100,8 +100,7 @@
             [(ngModel)]="terminalInput" 
             (keydown.enter)="executeDockerCommand()"
             [disabled]="(isExecutingCommand | async) ?? false"
-            placeholder="Type 'docker-compose up' to start the real Project California app..."
-            #terminalInputElement>
+            placeholder="Type 'docker-compose up' to start the real Project California app...">
         </div>
       </div>
       

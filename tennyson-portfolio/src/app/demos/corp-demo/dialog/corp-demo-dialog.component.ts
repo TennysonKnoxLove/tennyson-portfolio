@@ -1,13 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MessageLog, BoxConfig, corpView } from '../types/corp-demo.types';
@@ -23,13 +20,9 @@ import { CsvExportDialogComponent } from './csv-export-dialog.component';
   imports: [
     CommonModule,
     FormsModule,
-    MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatTabsModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCardModule
+    MatSelectModule
   ]
 })
 export class corpDemoDialogComponent implements OnInit, OnDestroy {
@@ -150,14 +143,10 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
     }).unsubscribe();
   }
 
-  // Export - delegate to facade
   exportToCSV(): void {
-    this.corpFacade.exportToCSVDemo();
-    // Open styled dialog instead of alert
     this.dialog.open(CsvExportDialogComponent, {
       width: '500px',
-      maxWidth: '90vw',
-      panelClass: 'csv-export-dialog-panel'
+      maxWidth: '90vw'
     });
   }
 

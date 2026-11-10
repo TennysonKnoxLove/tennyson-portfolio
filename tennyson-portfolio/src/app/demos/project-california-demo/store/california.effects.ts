@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of, timer } from 'rxjs';
+import { of } from 'rxjs';
 import { map, delay, catchError, switchMap, tap } from 'rxjs/operators';
 import * as CaliforniaActions from './california.actions';
 import { CaliforniaDataService } from '../services/california-data.service';
@@ -48,11 +48,6 @@ export class CaliforniaEffects {
         this.CaliforniaDataService.startContainers().pipe(
           map((response: DockerResponse) => {
             if (response.success) {
-              // Trigger health check after successful start
-              timer(800).subscribe(() => {
-                // This would normally be handled by another effect or service
-                // For demo purposes, we'll dispatch the health check action
-              });
               return CaliforniaActions.startDockerDemoSuccess({ response });
             } else {
               return CaliforniaActions.startDockerDemoFailure({ 
@@ -129,7 +124,7 @@ export class CaliforniaEffects {
       delay(350), // Simulate health check delay
       switchMap(() =>
         this.CaliforniaDataService.checkApplicationHealth().pipe(
-          map((response: DockerResponse & { applicationHtml?: any }) => {
+          map((response: DockerResponse) => {
             if (response.success) {
               return CaliforniaActions.checkApplicationHealthSuccess();
             } else {

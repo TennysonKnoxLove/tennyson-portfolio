@@ -1,6 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { DockerContainer, DockerResponse, CaliforniaView } from '../types/california-demo.types';
-import { SafeHtml } from '@angular/platform-browser';
+import { DockerResponse, CaliforniaView } from '../types/california-demo.types';
 
 // View Actions
 export const switchView = createAction(
@@ -13,11 +12,6 @@ export const toggleFullscreen = createAction(
 );
 
 // Terminal Actions
-export const setTerminalInput = createAction(
-  '[California] Set Terminal Input',
-  props<{ input: string }>()
-);
-
 export const executeCommand = createAction(
   '[California] Execute Command',
   props<{ command: string }>()
@@ -93,14 +87,10 @@ export const showDockerHelp = createAction(
   '[California] Show Docker Help'
 );
 
-export const scrollTerminalToBottom = createAction(
-  '[California] Scroll Terminal To Bottom'
-);
-
 export const resetCaliforniaState = createAction(
   '[California] Reset State'
 );
 
 export const clearError = createAction(
   '[California] Clear Error'
-); 
+);

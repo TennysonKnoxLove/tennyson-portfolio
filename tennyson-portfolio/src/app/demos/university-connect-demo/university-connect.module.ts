@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatBadgeModule } from '@angular/material/badge';
 import { UniversityConnectDialogRefactoredComponent } from './dialog/university-connect-dialog-refactored.component';
-import { UniversityConnectDialogService } from './uc-services/university-connect-dialog.service';
+import { UniversityConnectDialogService } from './services/university-connect-dialog.service';
 
 @NgModule({
   declarations: [],

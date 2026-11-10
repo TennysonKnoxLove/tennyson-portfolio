@@ -212,53 +212,19 @@
           <p class="step-description">When is your resource available?</p>
           
           <div class="availability-grid">
-            <div class="form-group">
-              <p class="field-label">Monday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="monday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Tuesday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="tuesday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Wednesday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="wednesday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Thursday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="thursday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Friday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="friday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Saturday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="saturday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
-            </div>
-            
-            <div class="form-group">
-              <p class="field-label">Sunday</p>
-              <mat-form-field appearance="outline">
-                <input matInput formControlName="sunday" placeholder="e.g., 9:00 AM - 5:00 PM">
-              </mat-form-field>
+            <div class="form-group" *ngFor="let day of weekDays" [formGroupName]="day.key">
+              <p class="field-label">{{ day.label }}</p>
+              <div class="time-range">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>Start</mat-label>
+                  <input matInput type="time" formControlName="start">
+                </mat-form-field>
+                <span class="time-separator">to</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>End</mat-label>
+                  <input matInput type="time" formControlName="end">
+                </mat-form-field>
+              </div>
             </div>
           </div>
           
@@ -306,13 +272,9 @@
             
             <div class="review-section">
               <h3>Availability</h3>
-              <p *ngIf="availabilityForm.get('monday')?.value"><strong>Monday:</strong> {{ availabilityForm.get('monday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('tuesday')?.value"><strong>Tuesday:</strong> {{ availabilityForm.get('tuesday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('wednesday')?.value"><strong>Wednesday:</strong> {{ availabilityForm.get('wednesday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('thursday')?.value"><strong>Thursday:</strong> {{ availabilityForm.get('thursday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('friday')?.value"><strong>Friday:</strong> {{ availabilityForm.get('friday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('saturday')?.value"><strong>Saturday:</strong> {{ availabilityForm.get('saturday')?.value }}</p>
-              <p *ngIf="availabilityForm.get('sunday')?.value"><strong>Sunday:</strong> {{ availabilityForm.get('sunday')?.value }}</p>
+              <ng-container *ngFor="let day of weekDays">
+                <p *ngIf="dayHours(day.key) as hours"><strong>{{ day.label }}:</strong> {{ hours.start }} – {{ hours.end }}</p>
+              </ng-container>
             </div>
           </mat-card-content>
         </mat-card>
@@ -323,8 +285,8 @@
             mat-raised-button 
             color="primary" 
             (click)="submitResource()" 
-            [disabled]="isSubmitting || !basicInfoForm.valid || !pricingForm.valid || !locationForm.valid">
-            {{ isSubmitting ? 'Publishing...' : 'Publish Resource' }}
+            [disabled]="(facade.isSubmitting$ | async) || !basicInfoForm.valid || !pricingForm.valid || !locationForm.valid">
+            {{ (facade.isSubmitting$ | async) ? 'Publishing...' : 'Publish Resource' }}
           </button>
         </div>
       </div>

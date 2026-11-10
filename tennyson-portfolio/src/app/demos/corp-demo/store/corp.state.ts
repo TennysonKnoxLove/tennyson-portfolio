@@ -40,7 +40,6 @@ export interface corpState {
   toNumberFilter: string;
   
   // Loading states
-  isLoading: boolean;
   isSendingSMS: boolean;
   isCreatingWebhook: boolean;
   
@@ -108,7 +107,6 @@ export const initialcorpState: corpState = {
   endDate: '',
   fromNumberFilter: '',
   toNumberFilter: '',
-  isLoading: false,
   isSendingSMS: false,
   isCreatingWebhook: false,
   error: null

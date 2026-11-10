@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
-import { map, delay, catchError } from 'rxjs/operators';
+import { map, delay } from 'rxjs/operators';
 import * as corpActions from './corp.actions';
 import { MessageLog } from '../types/corp-demo.types';
 
@@ -45,12 +44,7 @@ export class corpEffects {
         };
 
         return corpActions.sendSMSDemoSuccess({ messageLog: newMessage });
-      }),
-      catchError((error) => 
-        of(corpActions.sendSMSDemoFailure({ 
-          error: `📱 Demo Error: ${error.message}` 
-        }))
-      )
+      })
     )
   );
 
@@ -76,26 +70,7 @@ Format: ${webhookForm.format}
 Note: This is a UI demo - no actual webhook was created.`;
 
         return corpActions.createWebhookDemoSuccess({ successMessage });
-      }),
-      catchError((error) => 
-        of(corpActions.createWebhookDemoFailure({ 
-          error: `🔗 Demo Error: ${error.message}` 
-        }))
-      )
-    )
-  );
-
-  // Export CSV Demo Effect - Simulates CSV export
-  exportToCSVDemo$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(corpActions.exportToCSVDemo),
-      delay(500), // Simulate processing delay
-      map(() => {
-        // In a real app, this would trigger file download
-        // The UI feedback is now handled by the CSV export dialog
-        return { type: 'NO_ACTION' }; // No-op action
       })
-    ),
-    { dispatch: false }
+    )
   );
 } 

@@ -1,7 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import { PortfolioApi } from '../api/portfolio.api';
-import { Project } from '../types/project.types';
 import { TechStack, DeveloperBio } from '../types/landing-page.types';
 
 // Re-export types for easier importing
@@ -11,8 +8,6 @@ export type { TechStack, DeveloperBio } from '../types/landing-page.types';
   providedIn: 'root'
 })
 export class LandingPageService {
-  constructor(private portfolioApi: PortfolioApi) {}
-  
   /** 
    * Provides tech stack data for the landing page.
    * In a real application, this might come from an API call.
@@ -40,13 +35,4 @@ export class LandingPageService {
       summary: 'Full-stack engineer with hands-on experience across a wide range of modern tech stacks — from React, Angular, and Django to TypeScript, Tailwind, and AWS. Proven ability to ship fast, scale smart, and adapt quickly in startup settings.'
     };
   }
-  
-  /**
-   * Gets featured projects to display on the landing page
-   */
-  getFeaturedProjects(): Observable<Project[]> {
-    return this.portfolioApi.getPortfolioData().pipe(
-      map(response => response.projects.filter(project => project.featured))
-    );
-  }
-} 
+}

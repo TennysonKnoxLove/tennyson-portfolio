@@ -8,6 +8,4 @@ import { LayoutShellComponent } from './shell/layout-shell/layout-shell.componen
   imports: [RouterOutlet, LayoutShellComponent],
   templateUrl: './app.component.html'
 })
-export class AppComponent {
-  title = 'tennyson-portfolio';
-}
+export class AppComponent {}

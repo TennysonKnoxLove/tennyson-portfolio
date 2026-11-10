@@ -1,6 +1,17 @@
 import { createReducer, on } from '@ngrx/store';
-import { UniversityConnectState, initialUniversityConnectState, DemoView } from './university-connect.state';
+import { DayOfWeek, Resource, ResourceFilter } from '../../../types/resource.types';
+import { initialUniversityConnectState, DemoView, createEmptyResourceForm } from './university-connect.state';
 import * as UniversityConnectActions from './university-connect.actions';
+
+const WEEKDAY_BY_INDEX: DayOfWeek[] = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday'
+];
 
 export const universityConnectReducer = createReducer(
   initialUniversityConnectState,
@@ -56,8 +67,7 @@ export const universityConnectReducer = createReducer(
 
   on(UniversityConnectActions.addTag, (state, { tag }) => ({
     ...state,
-    tags: [...state.tags, tag],
-    currentTag: ''
+    tags: [...state.tags, tag]
   })),
 
   on(UniversityConnectActions.removeTag, (state, { index }) => ({
@@ -65,20 +75,13 @@ export const universityConnectReducer = createReducer(
     tags: state.tags.filter((_, i) => i !== index)
   })),
 
-  on(UniversityConnectActions.updateCurrentTag, (state, { tag }) => ({
+  on(UniversityConnectActions.addImage, (state, { previewUrl }) => ({
     ...state,
-    currentTag: tag
-  })),
-
-  on(UniversityConnectActions.addImage, (state, { file, previewUrl }) => ({
-    ...state,
-    uploadedImages: [...state.uploadedImages, file],
     imagePreviewUrls: [...state.imagePreviewUrls, previewUrl]
   })),
 
   on(UniversityConnectActions.removeImage, (state, { index }) => ({
     ...state,
-    uploadedImages: state.uploadedImages.filter((_, i) => i !== index),
     imagePreviewUrls: state.imagePreviewUrls.filter((_, i) => i !== index),
     uploadedImageUrls: state.uploadedImageUrls.filter((_, i) => i !== index)
   })),
@@ -86,19 +89,16 @@ export const universityConnectReducer = createReducer(
   // Real Image Upload Actions
   on(UniversityConnectActions.uploadImage, (state) => ({
     ...state,
-    isSubmitting: true,
     error: null
   })),
 
   on(UniversityConnectActions.uploadImageSuccess, (state, { url }) => ({
     ...state,
-    isSubmitting: false,
     uploadedImageUrls: [...state.uploadedImageUrls, url]
   })),
 
   on(UniversityConnectActions.uploadImageFailure, (state, { error }) => ({
     ...state,
-    isSubmitting: false,
     error
   })),
 
@@ -109,46 +109,27 @@ export const universityConnectReducer = createReducer(
     error: null
   })),
 
-  on(UniversityConnectActions.publishResourceSuccess, (state, { resource, message }) => ({
-    ...state,
-    isSubmitting: false,
-    currentView: DemoView.HOME,
-    successMessage: message,
-    showSuccessModal: true,
-    // Reset form state
-    currentUploadStep: 1,
-    tags: [],
-    currentTag: '',
-    uploadedImages: [],
-    imagePreviewUrls: [],
-    uploadedImageUrls: [],
-    // Reset resource form
-    resourceForm: {
-      resourceName: '',
-      description: '',
-      category: '',
-      price: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      monday: '',
-      tuesday: '',
-      wednesday: '',
-      thursday: '',
-      friday: '',
-      saturday: '',
-      sunday: '',
-      mondayEnd: '',
-      tuesdayEnd: '',
-      wednesdayEnd: '',
-      thursdayEnd: '',
-      fridayEnd: '',
-      saturdayEnd: '',
-      sundayEnd: '',
-    },
-    error: null
-  })),
+  on(UniversityConnectActions.publishResourceSuccess, (state, { resource, message }) => {
+    const allResources = upsertResource(state.allResources, resource);
+    const userResources = upsertResource(state.userResources, resource);
+
+    return {
+      ...state,
+      isSubmitting: false,
+      currentView: DemoView.HOME,
+      successMessage: message,
+      showSuccessModal: true,
+      currentUploadStep: 1,
+      tags: [],
+      imagePreviewUrls: [],
+      uploadedImageUrls: [],
+      resourceForm: createEmptyResourceForm(),
+      allResources,
+      userResources,
+      filteredResources: filterResources(allResources, state.currentFilters),
+      error: null
+    };
+  }),
 
   on(UniversityConnectActions.publishResourceFailure, (state, { error }) => ({
     ...state,
@@ -162,47 +143,12 @@ export const universityConnectReducer = createReducer(
     isLoadingResources: true
   })),
 
-  on(UniversityConnectActions.loadAllResourcesSuccess, (state, { resources }) => {
-    // Apply existing filters to the newly loaded resources
-    let filtered = [...resources];
-    
-    // Apply category filter
-    if (state.currentFilters.category) {
-      filtered = filtered.filter(resource => 
-        resource.category && resource.category.toLowerCase() === state.currentFilters.category?.toLowerCase()
-      );
-    }
-    
-    // Apply price range filter
-    if (state.currentFilters.priceMin !== undefined) {
-      filtered = filtered.filter(resource => resource.price >= state.currentFilters.priceMin!);
-    }
-    if (state.currentFilters.priceMax !== undefined) {
-      filtered = filtered.filter(resource => resource.price <= state.currentFilters.priceMax!);
-    }
-    
-    // Apply description filter (search)
-    if (state.currentFilters.description) {
-      filtered = filtered.filter(resource => 
-        resource.description.toLowerCase().includes(state.currentFilters.description!.toLowerCase()) ||
-        resource.name.toLowerCase().includes(state.currentFilters.description!.toLowerCase())
-      );
-    }
-    
-    // Apply tags filter
-    if (state.currentFilters.tags && state.currentFilters.tags.length > 0) {
-      filtered = filtered.filter(resource => 
-        state.currentFilters.tags!.some(tag => resource.tags.includes(tag))
-      );
-    }
-
-    return {
-      ...state,
-      isLoadingResources: false,
-      allResources: resources,
-      filteredResources: filtered
-    };
-  }),
+  on(UniversityConnectActions.loadAllResourcesSuccess, (state, { resources }) => ({
+    ...state,
+    isLoadingResources: false,
+    allResources: resources,
+    filteredResources: filterResources(resources, state.currentFilters)
+  })),
 
   on(UniversityConnectActions.loadAllResourcesFailure, (state, { error }) => ({
     ...state,
@@ -264,44 +210,10 @@ export const universityConnectReducer = createReducer(
     filteredResources: state.allResources
   })),
 
-  on(UniversityConnectActions.applyFilters, (state) => {
-    let filtered = [...state.allResources];
-    
-    // Apply category filter
-    if (state.currentFilters.category) {
-      filtered = filtered.filter(resource => 
-        resource.category && resource.category.toLowerCase() === state.currentFilters.category?.toLowerCase()
-      );
-    }
-    
-    // Apply price range filter
-    if (state.currentFilters.priceMin !== undefined) {
-      filtered = filtered.filter(resource => resource.price >= state.currentFilters.priceMin!);
-    }
-    if (state.currentFilters.priceMax !== undefined) {
-      filtered = filtered.filter(resource => resource.price <= state.currentFilters.priceMax!);
-    }
-    
-    // Apply description filter (search)
-    if (state.currentFilters.description) {
-      filtered = filtered.filter(resource => 
-        resource.description.toLowerCase().includes(state.currentFilters.description!.toLowerCase()) ||
-        resource.name.toLowerCase().includes(state.currentFilters.description!.toLowerCase())
-      );
-    }
-    
-    // Apply tags filter
-    if (state.currentFilters.tags && state.currentFilters.tags.length > 0) {
-      filtered = filtered.filter(resource => 
-        state.currentFilters.tags!.some(tag => resource.tags.includes(tag))
-      );
-    }
-    
-    return {
-      ...state,
-      filteredResources: filtered
-    };
-  }),
+  on(UniversityConnectActions.applyFilters, (state) => ({
+    ...state,
+    filteredResources: filterResources(state.allResources, state.currentFilters)
+  })),
 
   // Modal Actions
   on(UniversityConnectActions.showPaymentOverlay, (state, { resource }) => ({
@@ -340,12 +252,6 @@ export const universityConnectReducer = createReducer(
     successMessage: ''
   })),
 
-  // Error Actions
-  on(UniversityConnectActions.clearError, (state) => ({
-    ...state,
-    error: null
-  })),
-
   // Filter Form Actions
   on(UniversityConnectActions.updateFilterForm, (state, { formField, value }) => ({
     ...state,
@@ -374,33 +280,100 @@ export const universityConnectReducer = createReducer(
       ...state.resourceForm,
       [formField]: value
     }
-  })),
-
-  on(UniversityConnectActions.resetResourceForm, (state) => ({
-    ...state,
-    resourceForm: {
-      resourceName: '',
-      description: '',
-      category: '',
-      price: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      monday: '',
-      tuesday: '',
-      wednesday: '',
-      thursday: '',
-      friday: '',
-      saturday: '',
-      sunday: '',
-      mondayEnd: '',
-      tuesdayEnd: '',
-      wednesdayEnd: '',
-      thursdayEnd: '',
-      fridayEnd: '',
-      saturdayEnd: '',
-      sundayEnd: '',
-    }
   }))
-); 
+);
+
+function upsertResource(resources: Resource[], resource: Resource): Resource[] {
+  const existing = resources.findIndex(item => item.id === resource.id);
+  if (existing === -1) {
+    return [resource, ...resources];
+  }
+
+  return resources.map(item => item.id === resource.id ? resource : item);
+}
+
+function filterResources(resources: Resource[], filters: ResourceFilter): Resource[] {
+  let filtered = [...resources];
+
+  if (filters.category) {
+    filtered = filtered.filter(resource =>
+      resource.category?.toLowerCase() === filters.category?.toLowerCase()
+    );
+  }
+
+  if (filters.priceMin !== undefined) {
+    filtered = filtered.filter(resource => resource.price >= filters.priceMin!);
+  }
+  if (filters.priceMax !== undefined) {
+    filtered = filtered.filter(resource => resource.price <= filters.priceMax!);
+  }
+
+  if (filters.description) {
+    const query = filters.description.toLowerCase();
+    filtered = filtered.filter(resource =>
+      resource.description.toLowerCase().includes(query) ||
+      resource.name.toLowerCase().includes(query)
+    );
+  }
+
+  if (filters.tags && filters.tags.length > 0) {
+    filtered = filtered.filter(resource =>
+      filters.tags!.some(tag => resource.tags.includes(tag))
+    );
+  }
+
+  const openDays = weekdaysInRange(filters.availabilityFrom, filters.availabilityTo);
+  if (openDays) {
+    filtered = filtered.filter(resource =>
+      openDays.some(day => !!resource.availability?.[day]?.start)
+    );
+  }
+
+  return filtered;
+}
+
+function weekdaysInRange(from?: Date, to?: Date): DayOfWeek[] | null {
+  const start = toLocalDate(from);
+  const end = toLocalDate(to);
+  if (!start && !end) {
+    return null;
+  }
+
+  const cursor = new Date(start ?? end!);
+  const limit = new Date(end ?? start!);
+  cursor.setHours(0, 0, 0, 0);
+  limit.setHours(0, 0, 0, 0);
+  if (cursor > limit) {
+    const swappedStart = new Date(limit);
+    limit.setTime(cursor.getTime());
+    cursor.setTime(swappedStart.getTime());
+  }
+
+  const days: DayOfWeek[] = [];
+  while (cursor <= limit && days.length < 7) {
+    const day = WEEKDAY_BY_INDEX[cursor.getDay()];
+    if (!days.includes(day)) {
+      days.push(day);
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return days;
+}
+
+function toLocalDate(value: Date | string | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : new Date(value);
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+} 

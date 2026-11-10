@@ -27,10 +27,6 @@ export class UniversityConnectFacade {
     return this.store.select(UniversityConnectSelectors.selectCurrentUser);
   }
 
-  get isLoggedIn$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectIsLoggedIn);
-  }
-
   // Upload Observables
   get currentUploadStep$(): Observable<number> {
     return this.store.select(UniversityConnectSelectors.selectCurrentUploadStep);
@@ -40,36 +36,8 @@ export class UniversityConnectFacade {
     return this.store.select(UniversityConnectSelectors.selectTags);
   }
 
-  get currentTag$(): Observable<string> {
-    return this.store.select(UniversityConnectSelectors.selectCurrentTag);
-  }
-
-  get uploadedImages$(): Observable<File[]> {
-    return this.store.select(UniversityConnectSelectors.selectUploadedImages);
-  }
-
   get imagePreviewUrls$(): Observable<string[]> {
     return this.store.select(UniversityConnectSelectors.selectImagePreviewUrls);
-  }
-
-  get uploadedImageUrls$(): Observable<string[]> {
-    return this.store.select(UniversityConnectSelectors.selectUploadedImageUrls);
-  }
-
-  get hasUploadedImages$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectHasUploadedImages);
-  }
-
-  get canProceedToNextStep$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectCanProceedToNextStep);
-  }
-
-  get canPublishResource$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectCanPublishResource);
-  }
-
-  get uploadProgress$(): Observable<number> {
-    return this.store.select(UniversityConnectSelectors.selectUploadProgress);
   }
 
   // Resource Observables
@@ -85,20 +53,8 @@ export class UniversityConnectFacade {
     return this.store.select(UniversityConnectSelectors.selectFilteredResources);
   }
 
-  get currentFilters$(): Observable<ResourceFilter> {
-    return this.store.select(UniversityConnectSelectors.selectCurrentFilters);
-  }
-
   get hasActiveFilters$(): Observable<boolean> {
     return this.store.select(UniversityConnectSelectors.selectHasActiveFilters);
-  }
-
-  get resourceCount$(): Observable<number> {
-    return this.store.select(UniversityConnectSelectors.selectResourceCount);
-  }
-
-  get userResourceCount$(): Observable<number> {
-    return this.store.select(UniversityConnectSelectors.selectUserResourceCount);
   }
 
   // Modal Observables
@@ -143,17 +99,9 @@ export class UniversityConnectFacade {
     return this.store.select(UniversityConnectSelectors.selectIsSubmitting);
   }
 
-  get isAnyLoading$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectIsAnyLoading);
-  }
-
   // Error Observables
   get error$(): Observable<string | null> {
     return this.store.select(UniversityConnectSelectors.selectError);
-  }
-
-  get hasError$(): Observable<boolean> {
-    return this.store.select(UniversityConnectSelectors.selectHasError);
   }
 
   // Filter Form Observables
@@ -161,31 +109,9 @@ export class UniversityConnectFacade {
     return this.store.select(UniversityConnectSelectors.selectFilterForm);
   }
 
-  // Resource Form Observables  
+  // Resource Form Observables
   get resourceForm$(): Observable<any> {
     return this.store.select(UniversityConnectSelectors.selectResourceForm);
-  }
-
-  // Available categories for filters
-  get categories() {
-    return [
-      { value: '', display: 'All Categories' },
-      { value: 'space', display: 'Space' },
-      { value: 'equipment', display: 'Equipment' },
-      { value: 'lab', display: 'Lab' },
-      { value: 'service', display: 'Service' },
-      { value: 'software', display: 'Software' },
-      { value: 'academic', display: 'Academic' }
-    ];
-  }
-
-  // Computed Observables
-  get demoStatus$(): Observable<any> {
-    return this.store.select(UniversityConnectSelectors.selectDemoStatus);
-  }
-
-  get formValidation$(): Observable<any> {
-    return this.store.select(UniversityConnectSelectors.selectFormValidation);
   }
 
   // View Actions
@@ -199,7 +125,6 @@ export class UniversityConnectFacade {
 
   goToBrowse(): void {
     this.switchView(DemoView.BROWSE);
-    // Load all resources when switching to browse view
     this.loadAllResources();
   }
 
@@ -209,12 +134,7 @@ export class UniversityConnectFacade {
 
   goToMyResources(): void {
     this.switchView(DemoView.MY_RESOURCES);
-    // Load user resources when switching to this view
     this.loadUserResources();
-  }
-
-  goToLogin(): void {
-    this.switchView(DemoView.LOGIN);
   }
 
   toggleFullscreen(): void {
@@ -247,12 +167,8 @@ export class UniversityConnectFacade {
     this.store.dispatch(UniversityConnectActions.removeTag({ index }));
   }
 
-  updateCurrentTag(tag: string): void {
-    this.store.dispatch(UniversityConnectActions.updateCurrentTag({ tag }));
-  }
-
-  addImage(file: File, previewUrl: string): void {
-    this.store.dispatch(UniversityConnectActions.addImage({ file, previewUrl }));
+  addImage(previewUrl: string): void {
+    this.store.dispatch(UniversityConnectActions.addImage({ previewUrl }));
   }
 
   removeImage(index: number): void {
@@ -260,29 +176,7 @@ export class UniversityConnectFacade {
   }
 
   publishResource(resourceForm: ResourceForm): void {
-    this.currentUser$.subscribe(user => {
-      if (user) {
-        // Get tags and images from store and include them in the resource form
-        this.tags$.subscribe(tags => {
-          console.log('🏪 Tags from store:', tags);
-          this.uploadedImageUrls$.subscribe(imageUrls => {
-            console.log('🖼️ Image URLs from store:', imageUrls);
-            const updatedResourceForm = {
-              ...resourceForm,
-              tags: tags,
-              image: imageUrls.length > 0 ? imageUrls[0] : undefined // Use first uploaded image
-            };
-
-            console.log('📦 Updated resource form:', updatedResourceForm);
-
-            this.store.dispatch(UniversityConnectActions.publishResource({ 
-              resourceForm: updatedResourceForm, 
-              userId: user.id 
-            }));
-          }).unsubscribe();
-        }).unsubscribe();
-      }
-    }).unsubscribe();
+    this.store.dispatch(UniversityConnectActions.publishResourceRequested({ resourceForm }));
   }
 
   uploadImage(file: File): void {
@@ -305,9 +199,9 @@ export class UniversityConnectFacade {
   deleteResource(resourceId: string): void {
     this.currentUser$.subscribe(user => {
       if (user) {
-        this.store.dispatch(UniversityConnectActions.deleteResource({ 
-          resourceId, 
-          userId: user.id 
+        this.store.dispatch(UniversityConnectActions.deleteResource({
+          resourceId,
+          userId: user.id
         }));
       }
     }).unsubscribe();
@@ -337,9 +231,9 @@ export class UniversityConnectFacade {
   }
 
   showDeleteConfirmModal(resourceId: string, resourceName: string): void {
-    this.store.dispatch(UniversityConnectActions.showDeleteConfirmModal({ 
-      resourceId, 
-      resourceName 
+    this.store.dispatch(UniversityConnectActions.showDeleteConfirmModal({
+      resourceId,
+      resourceName
     }));
   }
 
@@ -355,15 +249,9 @@ export class UniversityConnectFacade {
     this.store.dispatch(UniversityConnectActions.hideSuccessModal());
   }
 
-  // Error Actions
-  clearError(): void {
-    this.store.dispatch(UniversityConnectActions.clearError());
-  }
-
-  // Filter Form Actions - Business Logic moved from Component
+  // Filter Form Actions
   updateFilterForm(field: string, value: string): void {
     this.store.dispatch(UniversityConnectActions.updateFilterForm({ formField: field, value }));
-    // Auto-apply filters on change
     this.applyCurrentFilters();
   }
 
@@ -379,95 +267,41 @@ export class UniversityConnectFacade {
         priceMin: filterForm.priceMin ? parseFloat(filterForm.priceMin) : undefined,
         priceMax: filterForm.priceMax ? parseFloat(filterForm.priceMax) : undefined,
         category: filterForm.category || undefined,
-        availabilityFrom: filterForm.availabilityFrom ? new Date(filterForm.availabilityFrom) : undefined,
-        availabilityTo: filterForm.availabilityTo ? new Date(filterForm.availabilityTo) : undefined
+        availabilityFrom: parseFilterDate(filterForm.availabilityFrom),
+        availabilityTo: parseFilterDate(filterForm.availabilityTo)
       };
       this.store.dispatch(UniversityConnectActions.updateFilters({ filters }));
       this.store.dispatch(UniversityConnectActions.applyFilters());
     }).unsubscribe();
   }
 
-  // Resource Form Actions - Business Logic moved from Component
+  // Resource Form Actions
   updateResourceForm(field: string, value: string): void {
     this.store.dispatch(UniversityConnectActions.updateResourceForm({ formField: field, value }));
   }
 
-  resetResourceForm(): void {
-    this.store.dispatch(UniversityConnectActions.resetResourceForm());
-  }
-
   publishResourceFromForm(): void {
-    this.resourceForm$.subscribe(resourceForm => {
-      this.currentUser$.subscribe(user => {
-        if (user) {
-          // Get tags and images from store and include them in the resource form
-          this.tags$.subscribe(tags => {
-            this.uploadedImageUrls$.subscribe(imageUrls => {
-              const updatedResourceForm = {
-                ...resourceForm,
-                tags: tags,
-                image: imageUrls.length > 0 ? imageUrls[0] : undefined
-              };
-
-              this.store.dispatch(UniversityConnectActions.publishResource({ 
-                resourceForm: updatedResourceForm, 
-                userId: user.id 
-              }));
-            }).unsubscribe();
-          }).unsubscribe();
-        }
-      }).unsubscribe();
-    }).unsubscribe();
+    this.store.dispatch(UniversityConnectActions.publishResourceRequested({}));
   }
 
   // State Management
   resetState(): void {
-    // Reset to initial state by logging out
     this.logout();
   }
 
   // Helper Methods for Components
-  handleLogin(username: string, rememberMe: boolean = false): void {
-    const loginForm: LoginForm = { username, rememberMe };
-    this.loginDemo(loginForm);
-  }
-
-  handleResourcePublish(resourceForm: ResourceForm): void {
-    this.publishResource(resourceForm);
-  }
-
-  handleResourceDelete(resourceId: string, resourceName: string): void {
-    this.showDeleteConfirmModal(resourceId, resourceName);
-  }
-
-  handleFileSelection(files: FileList): void {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('image/')) {
-        // Create preview URL
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const previewUrl = e.target?.result as string;
-          this.addImage(file, previewUrl);
-          
-          // Upload to server
-          this.uploadImage(file);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
+  handleLogin(username: string): void {
+    this.loginDemo({ username });
   }
 
   // Search functionality - handles search from homepage
   searchResources(searchTerm: string): void {
     if (searchTerm.trim()) {
-      // Set the description filter with the search term
-      this.store.dispatch(UniversityConnectActions.updateFilterForm({ 
-        formField: 'description', 
-        value: searchTerm.trim() 
+      this.store.dispatch(UniversityConnectActions.updateFilterForm({
+        formField: 'description',
+        value: searchTerm.trim()
       }));
-      
-      // Update filters with the search term
+
       const filters = {
         description: searchTerm.trim(),
         priceMin: undefined,
@@ -477,12 +311,26 @@ export class UniversityConnectFacade {
         availabilityTo: undefined
       };
       this.store.dispatch(UniversityConnectActions.updateFilters({ filters }));
-      
-      // Navigate to browse page (the reducer will now apply the filters when loading resources)
+
       this.goToBrowse();
     } else {
-      // If empty search, just go to browse page
       this.goToBrowse();
     }
   }
-} 
+}
+
+function parseFilterDate(value: string | Date | null | undefined): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) {
+    return undefined;
+  }
+
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}

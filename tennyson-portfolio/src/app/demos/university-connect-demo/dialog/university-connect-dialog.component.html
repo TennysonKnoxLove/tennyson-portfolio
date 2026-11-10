@@ -442,141 +442,21 @@
             <p>Set when your resource is available.</p>
             
             <div class="availability-days">
-              <div class="day-item">
+              <div class="day-item" *ngFor="let day of weekDays">
                 <label class="day-label">
                   <input type="checkbox" checked disabled>
-                  Monday
+                  {{ day.label }}
                 </label>
                 <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.monday || '09:00'"
+                  <input
+                    type="time"
+                    [value]="(resourceForm | async)?.availability?.[day.key]?.start || '09:00'"
                     disabled
                     readonly>
                   <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.mondayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Tuesday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.tuesday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.tuesdayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Wednesday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.wednesday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.wednesdayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Thursday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.thursday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.thursdayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Friday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.friday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.fridayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Saturday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.saturday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.saturdayEnd || '17:00'"
-                    disabled
-                    readonly>
-                </div>
-              </div>
-              
-              <div class="day-item">
-                <label class="day-label">
-                  <input type="checkbox" checked disabled>
-                  Sunday
-                </label>
-                <div class="time-inputs">
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.sunday || '09:00'"
-                    disabled
-                    readonly>
-                  <span class="time-separator">to</span>
-                  <input 
-                    type="time" 
-                    [value]="(resourceForm | async)?.sundayEnd || '17:00'"
+                  <input
+                    type="time"
+                    [value]="(resourceForm | async)?.availability?.[day.key]?.end || '17:00'"
                     disabled
                     readonly>
                 </div>
@@ -627,17 +507,16 @@
                 <span class="value">{{ (resourceForm | async)?.city }}{{ (resourceForm | async)?.city && (resourceForm | async)?.state ? ', ' : '' }}{{ (resourceForm | async)?.state }} {{ (resourceForm | async)?.zipCode }}</span>
               </div>
               
-              <!-- Availability summary -->
-              <div class="preview-availability" *ngIf="(resourceForm | async)?.monday || (resourceForm | async)?.tuesday || (resourceForm | async)?.wednesday || (resourceForm | async)?.thursday || (resourceForm | async)?.friday">
-                <h5>Availability:</h5>
-                <div class="availability-summary">
-                  <span *ngIf="(resourceForm | async)?.monday" class="availability-day">Mon: {{ (resourceForm | async)?.monday }} - {{ (resourceForm | async)?.mondayEnd }}</span>
-                  <span *ngIf="(resourceForm | async)?.tuesday" class="availability-day">Tue: {{ (resourceForm | async)?.tuesday }} - {{ (resourceForm | async)?.tuesdayEnd }}</span>
-                  <span *ngIf="(resourceForm | async)?.wednesday" class="availability-day">Wed: {{ (resourceForm | async)?.wednesday }} - {{ (resourceForm | async)?.wednesdayEnd }}</span>
-                  <span *ngIf="(resourceForm | async)?.thursday" class="availability-day">Thu: {{ (resourceForm | async)?.thursday }} - {{ (resourceForm | async)?.thursdayEnd }}</span>
-                  <span *ngIf="(resourceForm | async)?.friday" class="availability-day">Fri: {{ (resourceForm | async)?.friday }} - {{ (resourceForm | async)?.fridayEnd }}</span>
+              <ng-container *ngIf="resourceForm | async as form">
+                <div class="preview-availability" *ngIf="hasAvailability(form)">
+                  <h5>Availability:</h5>
+                  <div class="availability-summary">
+                    <ng-container *ngFor="let day of weekDays">
+                      <span *ngIf="form.availability[day.key]?.start as start" class="availability-day">{{ day.shortLabel }}: {{ start }} - {{ form.availability[day.key]?.end }}</span>
+                    </ng-container>
+                  </div>
                 </div>
-              </div>
+              </ng-container>
             </div>
             
             <div class="publish-agreement">
@@ -657,8 +536,8 @@
                   (click)="nextUploadStep()">Next</button>
           <button class="publish-btn" 
                   *ngIf="(currentUploadStep | async) === 6" 
-                  [disabled]="!(tags | async) || (tags | async)!.length === 0"
-                  (click)="publishResource()">Publish Resource</button>
+                  [disabled]="(isSubmitting | async) || !(tags | async) || (tags | async)!.length === 0"
+                  (click)="publishResource()">{{ (isSubmitting | async) ? 'Publishing...' : 'Publish Resource' }}</button>
         </div>
       </div>
     </div>

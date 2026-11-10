@@ -13,6 +13,13 @@ import { MatCardModule } from '@angular/material/card';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
 import { ResourceForm } from '../store/university-connect.state';
+import { readResourceImages } from '../utils/read-resource-images';
+import {
+  DayHours,
+  DayOfWeek,
+  WEEK_DAYS,
+  availabilityFromHours
+} from '../../../types/resource.types';
 
 @Component({
   selector: 'app-resource-upload',
@@ -49,7 +56,7 @@ export class ResourceUploadComponent implements OnInit {
   // UI state properties
   selectedTags: string[] = [];
   uploadedImage: string | null = null;
-  isSubmitting = false;
+  readonly weekDays = WEEK_DAYS;
   
   constructor(
     private fb: FormBuilder,
@@ -81,16 +88,11 @@ export class ResourceUploadComponent implements OnInit {
       zip: ['', [Validators.required, Validators.pattern(/^\d{5}(?:[-\s]\d{4})?$/)]]
     });
     
-    // Availability Form
-    this.availabilityForm = this.fb.group({
-      monday: [''],
-      tuesday: [''],
-      wednesday: [''],
-      thursday: [''],
-      friday: [''],
-      saturday: [''],
-      sunday: ['']
-    });
+    this.availabilityForm = this.fb.group(
+      Object.fromEntries(
+        WEEK_DAYS.map(day => [day.key, this.fb.group({ start: [''], end: [''] })])
+      )
+    );
     
     // Images Form
     this.imagesForm = this.fb.group({
@@ -108,18 +110,20 @@ export class ResourceUploadComponent implements OnInit {
     this.selectedTags = this.selectedTags.filter(t => t !== tag);
   }
   
-  onImageSelected(event: any): void {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.uploadedImage = e.target.result;
-        this.imagesForm.patchValue({ image: this.uploadedImage });
-      };
-      reader.readAsDataURL(file);
-      this.facade.handleFileSelection(files);
+  onImageSelected(event: Event): void {
+    const files = (event.target as HTMLInputElement | null)?.files;
+    if (!files?.length) {
+      return;
     }
+
+    readResourceImages(files, (file, previewUrl) => {
+      if (!this.uploadedImage) {
+        this.uploadedImage = previewUrl;
+        this.imagesForm.patchValue({ image: previewUrl });
+      }
+      this.facade.addImage(previewUrl);
+      this.facade.uploadImage(file);
+    });
   }
   
   submitResource(): void {
@@ -132,8 +136,6 @@ export class ResourceUploadComponent implements OnInit {
       this.locationForm.valid &&
       hasRequiredTags
     ) {
-      this.isSubmitting = true;
-      
       // Create resource form data
       const resourceForm: ResourceForm = {
         // Basic Info
@@ -155,33 +157,11 @@ export class ResourceUploadComponent implements OnInit {
         city: this.locationForm.value.city,
         state: this.locationForm.value.state,
         zipCode: this.locationForm.value.zip,
-        
-        // Availability
-        monday: this.availabilityForm.value.monday || '',
-        tuesday: this.availabilityForm.value.tuesday || '',
-        wednesday: this.availabilityForm.value.wednesday || '',
-        thursday: this.availabilityForm.value.thursday || '',
-        friday: this.availabilityForm.value.friday || '',
-        saturday: this.availabilityForm.value.saturday || '',
-        sunday: this.availabilityForm.value.sunday || '',
-        
-        // End times (default values)
-        mondayEnd: '17:00',
-        tuesdayEnd: '17:00',
-        wednesdayEnd: '17:00',
-        thursdayEnd: '17:00',
-        fridayEnd: '17:00',
-        saturdayEnd: '',
-        sundayEnd: ''
+        availability: availabilityFromHours(this.availabilityForm.value)
       };
       
       // Delegate to facade
       this.facade.publishResource(resourceForm);
-      
-      // Reset submitting state after a delay (demo purposes)
-      setTimeout(() => {
-        this.isSubmitting = false;
-      }, 2000);
     } else {
       // Show specific error message based on what's missing
       let errorMessage = '🎭 Please fill in all required fields:';
@@ -195,5 +175,14 @@ export class ResourceUploadComponent implements OnInit {
       errorMessage += ' ' + missingFields.join(', ') + '. (Demo)';
       this.facade.showSuccessModal(errorMessage);
     }
+  }
+
+  dayHours(day: DayOfWeek): DayHours | null {
+    const hours = this.availabilityForm.get(day)?.value as DayHours | undefined;
+    if (!hours?.start?.trim()) {
+      return null;
+    }
+
+    return hours;
   }
 } 

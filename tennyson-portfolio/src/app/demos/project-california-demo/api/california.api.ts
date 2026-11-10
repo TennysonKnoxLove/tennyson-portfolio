@@ -31,13 +31,6 @@ export class CaliforniaApiService {
     );
   }
 
-  checkApplicationHealth(): Observable<DockerResponse> {
-    return this.http.get<DockerResponse>(`${this.API_BASE}/health-check`).pipe(
-      catchError(() => this.getSimulatedHealthResponse())
-    );
-  }
-
-  
   getApplicationHtml(): Observable<any> {
     return this.http.get<any>(`${this.API_BASE}/california-app`).pipe(
       catchError(() => this.getSimulatedAppResponse())
@@ -87,15 +80,6 @@ export class CaliforniaApiService {
       output: 'abc123def456   california-web:latest   "npm start"   2 minutes ago   Up 2 minutes   0.0.0.0:3000->3000/tcp   california-web\ndef456ghi789   california-api:latest   "python app.py"   2 minutes ago   Up 2 minutes   0.0.0.0:8000->8000/tcp   california-api\nghi789jkl012   postgres:13   "docker-entrypoint..."   2 minutes ago   Up 2 minutes   0.0.0.0:5432->5432/tcp   california-db',
       containers
     }).pipe(delay(300));
-  }
-
-  private getSimulatedHealthResponse(): Observable<DockerResponse> {
-    return of({
-      success: true,
-      message: 'Application is healthy (Demo)',
-      output: 'Health check passed',
-      containers: []
-    }).pipe(delay(700));
   }
 
   private getSimulatedAppResponse(): Observable<any> {

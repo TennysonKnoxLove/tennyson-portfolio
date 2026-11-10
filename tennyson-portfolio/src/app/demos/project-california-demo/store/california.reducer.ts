@@ -1,7 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
-import { CaliforniaState, initialCaliforniaState } from './california.state';
+import { initialCaliforniaState } from './california.state';
 import * as CaliforniaActions from './california.actions';
-import { CaliforniaView } from '../types/california-demo.types';
 
 export const CaliforniaReducer = createReducer(
   initialCaliforniaState,
@@ -18,14 +17,8 @@ export const CaliforniaReducer = createReducer(
   })),
 
   // Terminal Actions
-  on(CaliforniaActions.setTerminalInput, (state, { input }) => ({
-    ...state,
-    terminalInput: input
-  })),
-
   on(CaliforniaActions.executeCommand, (state, { command }) => ({
     ...state,
-    terminalInput: '',
     terminalOutput: [...state.terminalOutput, `$ ${command}`]
   })),
 
@@ -83,7 +76,6 @@ export const CaliforniaReducer = createReducer(
     ...state,
     isExecutingCommand: false,
     dockerRunning: false,
-    applicationHtml: null,
     healthCheckPassed: false,
     dockerContainers: state.dockerContainers.map(container => ({
       ...container,
@@ -111,14 +103,8 @@ export const CaliforniaReducer = createReducer(
     error
   })),
 
-  on(CaliforniaActions.checkDockerStatus, (state) => ({
-    ...state,
-    isCheckingStatus: true
-  })),
-
   on(CaliforniaActions.checkDockerStatusSuccess, (state, { response }) => ({
     ...state,
-    isCheckingStatus: false,
     dockerContainers: response.containers,
     dockerRunning: response.containers.some(c => c.status === 'running'),
     terminalOutput: [
@@ -132,7 +118,6 @@ export const CaliforniaReducer = createReducer(
 
   on(CaliforniaActions.checkDockerStatusFailure, (state, { error }) => ({
     ...state,
-    isCheckingStatus: false,
     terminalOutput: [
       ...state.terminalOutput,
       `❌ Error checking status: ${error}`,
@@ -141,15 +126,8 @@ export const CaliforniaReducer = createReducer(
     error
   })),
 
-  on(CaliforniaActions.checkApplicationHealth, (state) => ({
-    ...state,
-    isCheckingHealth: true
-  })),
-
   on(CaliforniaActions.checkApplicationHealthSuccess, (state) => ({
     ...state,
-    isCheckingHealth: false,
-    applicationHtml: null,
     healthCheckPassed: true,
     terminalOutput: [
       ...state.terminalOutput,
@@ -159,7 +137,6 @@ export const CaliforniaReducer = createReducer(
 
   on(CaliforniaActions.checkApplicationHealthFailure, (state, { error }) => ({
     ...state,
-    isCheckingHealth: false,
     healthCheckPassed: false,
     terminalOutput: [
       ...state.terminalOutput,
@@ -191,4 +168,4 @@ export const CaliforniaReducer = createReducer(
     ...state,
     error: null
   }))
-); 
+);

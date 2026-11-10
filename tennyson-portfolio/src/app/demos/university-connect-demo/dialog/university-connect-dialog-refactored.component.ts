@@ -10,9 +10,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
-import { DemoView } from '../store/university-connect.state';
-import { takeUntil } from 'rxjs/operators';
+import { DemoView, ResourceForm } from '../store/university-connect.state';
+import { readResourceImages } from '../utils/read-resource-images';
+import { WEEK_DAYS } from '../../../types/resource.types';
 import { Subject } from 'rxjs';
+
+const REMEMBERED_USERNAME_KEY = 'university-connect-demo-username';
 
 @Component({
   selector: 'app-university-connect-dialog-refactored',
@@ -37,6 +40,16 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   private destroy$ = new Subject<void>();
   
   // Simple UI state only - no business logic
+  readonly weekDays = WEEK_DAYS;
+  readonly categories = [
+    { value: '', display: 'All Categories' },
+    { value: 'space', display: 'Space' },
+    { value: 'equipment', display: 'Equipment' },
+    { value: 'lab', display: 'Lab' },
+    { value: 'service', display: 'Service' },
+    { value: 'software', display: 'Software' },
+    { value: 'academic', display: 'Academic' }
+  ];
   username: string = '';
   rememberMe: boolean = false;
   currentTag: string = '';
@@ -45,7 +58,6 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   // Delegate all observables to facade (no local state)
   get currentView() { return this.facade.currentView$; }
   get currentUploadStep() { return this.facade.currentUploadStep$; }
-  get formValidation() { return this.facade.formValidation$; }
   get userResources() { return this.facade.userResources$; }
   get isLoadingUserResources() { return this.facade.isLoadingUserResources$; }
   get showPaymentOverlay() { return this.facade.showPaymentOverlay$; }
@@ -55,10 +67,10 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   get showSuccessModal() { return this.facade.showSuccessModal$; }
   get successMessage() { return this.facade.successMessage$; }
   get imagePreviewUrls() { return this.facade.imagePreviewUrls$; }
-  get uploadedImages() { return this.facade.uploadedImages$; }
   get tags() { return this.facade.tags$; }
   get currentUser() { return this.facade.currentUser$; }
   get isLoading() { return this.facade.isLoading$; }
+  get isSubmitting() { return this.facade.isSubmitting$; }
   get isLoadingResources() { return this.facade.isLoadingResources$; }
   get allResources() { return this.facade.allResources$; }
   get filteredResources() { return this.facade.filteredResources$; }
@@ -68,7 +80,6 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   // State from facade (no local management)
   get filterForm() { return this.facade.filterForm$; }
   get resourceForm() { return this.facade.resourceForm$; }
-  get categories() { return this.facade.categories; }
 
   constructor(
     public dialogRef: MatDialogRef<UniversityConnectDialogRefactoredComponent>,
@@ -76,6 +87,12 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   ) {}
 
   ngOnInit(): void {
+    const rememberedUsername = localStorage.getItem(REMEMBERED_USERNAME_KEY);
+    if (rememberedUsername) {
+      this.username = rememberedUsername;
+      this.rememberMe = true;
+    }
+
     // Just load resources - no complex subscriptions
     this.facade.loadAllResources();
     
@@ -102,10 +119,18 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
 
   // Authentication Actions (delegate to facade)
   login(username: string): void {
-    console.log('🎭 University Connect Demo - Login called with username:', username);
-    if (username && username.trim()) {
-      this.facade.handleLogin(username.trim());
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      return;
     }
+
+    if (this.rememberMe) {
+      localStorage.setItem(REMEMBERED_USERNAME_KEY, trimmedUsername);
+    } else {
+      localStorage.removeItem(REMEMBERED_USERNAME_KEY);
+    }
+
+    this.facade.handleLogin(trimmedUsername);
   }
 
   logout(): void {
@@ -139,18 +164,25 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
     this.facade.removeTag(index);
   }
 
-  handleFileSelection(event: any): void {
-    const files = event.target.files;
+  handleFileSelection(event: Event): void {
+    const files = (event.target as HTMLInputElement | null)?.files;
     if (files) {
-      this.facade.handleFileSelection(files);
+      this.storeSelectedImages(files);
     }
   }
 
   handleImageDrop(event: DragEvent): void {
     event.preventDefault();
     if (event.dataTransfer?.files) {
-      this.facade.handleFileSelection(event.dataTransfer.files);
+      this.storeSelectedImages(event.dataTransfer.files);
     }
+  }
+
+  private storeSelectedImages(files: FileList): void {
+    readResourceImages(files, (file, previewUrl) => {
+      this.facade.addImage(previewUrl);
+      this.facade.uploadImage(file);
+    });
   }
 
   handleDragOver(event: DragEvent): void {
@@ -270,6 +302,10 @@ export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDes
   // Form field update helpers (delegate to facade)
   updateResourceFormField(field: string, value: string): void {
     this.facade.updateResourceForm(field, value);
+  }
+
+  hasAvailability(form: ResourceForm | null): boolean {
+    return !!form && this.weekDays.some(day => !!form.availability[day.key]?.start);
   }
 
   // Search functionality (delegate to facade)

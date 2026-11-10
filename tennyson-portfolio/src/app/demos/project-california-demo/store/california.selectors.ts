@@ -26,22 +26,12 @@ export const selectDockerRunning = createSelector(
   (state) => state.dockerRunning
 );
 
-export const selectApplicationHtml = createSelector(
-  selectCaliforniaState,
-  (state) => state.applicationHtml
-);
-
 export const selectHealthCheckPassed = createSelector(
   selectCaliforniaState,
   (state) => state.healthCheckPassed
 );
 
 // Terminal selectors
-export const selectTerminalInput = createSelector(
-  selectCaliforniaState,
-  (state) => state.terminalInput
-);
-
 export const selectTerminalOutput = createSelector(
   selectCaliforniaState,
   (state) => state.terminalOutput
@@ -51,16 +41,6 @@ export const selectTerminalOutput = createSelector(
 export const selectIsExecutingCommand = createSelector(
   selectCaliforniaState,
   (state) => state.isExecutingCommand
-);
-
-export const selectIsCheckingStatus = createSelector(
-  selectCaliforniaState,
-  (state) => state.isCheckingStatus
-);
-
-export const selectIsCheckingHealth = createSelector(
-  selectCaliforniaState,
-  (state) => state.isCheckingHealth
 );
 
 // Error selector
@@ -87,13 +67,8 @@ export const selectCaliforniaViewModel = createSelector(
   selectIsFullscreen,
   selectDockerContainers,
   selectDockerRunning,
-  selectApplicationHtml,
-  selectTerminalInput,
   selectTerminalOutput,
   selectIsExecutingCommand,
-  selectIsCheckingStatus,
-  selectIsCheckingHealth,
-  selectError,
   selectIsApplicationReady,
   selectRunningContainerCount,
   (
@@ -101,13 +76,8 @@ export const selectCaliforniaViewModel = createSelector(
     isFullscreen,
     dockerContainers,
     dockerRunning,
-    applicationHtml,
-    terminalInput,
     terminalOutput,
     isExecutingCommand,
-    isCheckingStatus,
-    isCheckingHealth,
-    error,
     isApplicationReady,
     runningContainerCount
   ) => ({
@@ -115,14 +85,9 @@ export const selectCaliforniaViewModel = createSelector(
     isFullscreen,
     dockerContainers,
     dockerRunning,
-    applicationHtml,
-    terminalInput,
     terminalOutput,
     isExecutingCommand,
-    isCheckingStatus,
-    isCheckingHealth,
-    error,
     isApplicationReady,
     runningContainerCount
   })
-); 
+);

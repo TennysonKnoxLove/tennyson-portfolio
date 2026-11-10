@@ -1,15 +1,12 @@
 import { Component } from '@angular/core';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-csv-export-dialog',
   standalone: true,
   imports: [
-    CommonModule,
-    MatDialogModule,
     MatButtonModule,
     MatIconModule
   ],
