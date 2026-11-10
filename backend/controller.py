@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, Header
-from service import UserService, ResourceService, PortfolioService, DockerService
+from service import UserService, ResourceService, DockerService
 import json
 
 router = APIRouter()
@@ -50,13 +50,6 @@ async def login_user(login_data: dict):
         "message": f"Login successful for {user.username}"
     }
 
-@router.get("/users/{user_id}")
-async def get_user(user_id: str):
-    user = await UserService.get_user(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
 @router.get("/resources")
 async def get_resources():
     resources = await ResourceService.get_all_resources()
@@ -105,21 +98,9 @@ async def delete_resource(resource_id: str):
         raise HTTPException(status_code=404, detail="Resource not found")
     return {"message": "Resource deleted successfully"}
 
-@router.get("/portfolio")
-async def get_portfolio_data():
-    return await PortfolioService.get_portfolio_data()
-
 @router.post("/resources/upload-image")
 async def upload_image(file: UploadFile):
     return await ResourceService.upload_image(file)
-
-@router.post("/docker/start")
-async def start_containers():
-    return await DockerService.start_containers()
-
-@router.post("/docker/stop")
-async def stop_containers():
-    return await DockerService.stop_containers()
 
 @router.get("/docker/status")
 async def get_container_status():
@@ -134,31 +115,6 @@ async def california_start_containers():
 async def california_stop_containers():
     return await DockerService.california_stop_containers()
 
-@router.get("/docker/health-check")
-async def california_health_check():
-    return await DockerService.california_health_check()
-
 @router.get("/docker/california-app")
 async def california_get_app_url():
-    return await DockerService.california_get_app_url()
-
-@router.get("/docker/montana-app")
-async def montana_get_app_url():
-    return await DockerService.montana_get_app_url()
-
-# Montana Project endpoints
-@router.post("/docker/montana-compose-up")
-async def montana_start_containers():
-    return await DockerService.montana_start_containers()
-
-@router.post("/docker/montana-compose-down")
-async def montana_stop_containers():
-    return await DockerService.montana_stop_containers()
-
-@router.get("/docker/montana-status")
-async def montana_get_container_status():
-    return await DockerService.montana_get_container_status()
-
-@router.get("/docker/montana-health-check")
-async def montana_health_check():
-    return await DockerService.montana_health_check() 
+    return await DockerService.california_get_app_url() 

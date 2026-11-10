@@ -1,43 +1,57 @@
-# Stage 1: Build the application
-FROM node:20-alpine AS builder
+# Stage 1: Build the Angular app in tennyson-portfolio/
+FROM node:20-alpine AS web-builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or yarn.lock)
-COPY package*.json ./
+COPY tennyson-portfolio/package.json tennyson-portfolio/package-lock.json ./
 
-# Install all dependencies (including devDependencies needed for the build)
 RUN npm ci
 
-# Copy the rest of the application source code
-COPY . .
+COPY tennyson-portfolio/ ./
 
-# Run the build script (e.g., for Angular, TypeScript, etc.)
 RUN npm run build
 
-# Stage 2: Create the production image
-FROM node:20-alpine
+# API image. Compose selects this with target: api.
+FROM python:3.11-slim AS api
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app/backend
+
+# Node.js is needed for Prisma CLI to run `prisma generate`
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY prisma /app/prisma
+RUN npx prisma@5.17.0 generate --schema=/app/prisma/schema.prisma
+
+COPY backend/ .
+RUN mkdir -p uploaded-images
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Angular production image. This is the default build target.
+FROM node:20-alpine AS web
 
 WORKDIR /app
 
-# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy package.json and package-lock.json from the builder stage
-COPY --from=builder /app/package*.json ./
+COPY tennyson-portfolio/package.json tennyson-portfolio/package-lock.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
-# Copy the built application from the builder stage
-# The output of 'npm run build' for Angular is typically in a 'dist/project-name' folder.
-# We copy the entire 'dist' folder from the builder to the '/app/dist' in the final image.
-COPY --from=builder /app/dist ./dist
+COPY --from=web-builder /app/dist ./dist
 
-# Expose the port the app runs on
 EXPOSE 8080
 
-# Command to run the application
-# This should point to your Angular SSR server script within the 'dist' folder.
-CMD ["node", "dist/tennyson-portfolio/server/server.mjs"] 
+CMD ["node", "dist/tennyson-portfolio/server/server.mjs"]

@@ -1,11 +1,7 @@
-from repository import UserRepository, ResourceRepository, PortfolioRepository, DockerRepository
+from repository import UserRepository, ResourceRepository, DockerRepository
 from fastapi import UploadFile
 
 class UserService:
-    @staticmethod
-    async def get_user(user_id: str):
-        return await UserRepository.get_user_by_id(user_id)
-
     @staticmethod
     async def login_user(login_data: dict):
         username = login_data.get("username")
@@ -38,20 +34,7 @@ class ResourceService:
     async def upload_image(file: UploadFile):
         return await ResourceRepository.upload_image(file)
 
-class PortfolioService:
-    @staticmethod
-    async def get_portfolio_data():
-        return await PortfolioRepository.get_portfolio_data()
-
 class DockerService:
-    @staticmethod
-    async def start_containers():
-        return await DockerRepository.start_containers()
-
-    @staticmethod
-    async def stop_containers():
-        return await DockerRepository.stop_containers()
-
     @staticmethod
     async def get_container_status():
         return await DockerRepository.get_container_status()
@@ -66,29 +49,5 @@ class DockerService:
         return await DockerRepository.california_stop_containers()
 
     @staticmethod
-    async def california_health_check():
-        return await DockerRepository.california_health_check()
-
-    @staticmethod
     async def california_get_app_url():
-        return await DockerRepository.california_get_app_url()
-
-    @staticmethod
-    async def montana_start_containers():
-        return await DockerRepository.montana_start_containers()
-
-    @staticmethod
-    async def montana_stop_containers():
-        return await DockerRepository.montana_stop_containers()
-
-    @staticmethod
-    async def montana_get_container_status():
-        return await DockerRepository.montana_get_container_status()
-
-    @staticmethod
-    async def montana_health_check():
-        return await DockerRepository.montana_health_check()
-
-    @staticmethod
-    async def montana_get_app_url():
-        return await DockerRepository.montana_get_app_url() 
+        return await DockerRepository.california_get_app_url() 

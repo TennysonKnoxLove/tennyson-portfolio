@@ -8,11 +8,6 @@ prisma = Prisma()
 
 class UserRepository:
     @staticmethod
-    async def get_user_by_id(user_id: str):
-        user = await prisma.user.find_unique(where={"id": user_id})
-        return user
-
-    @staticmethod
     async def find_or_create_user_by_username(username: str):
         user = await prisma.user.find_unique(where={"username": username})
         if not user:
@@ -74,20 +69,7 @@ class ResourceRepository:
             "filename": unique_filename
         }
 
-class PortfolioRepository:
-    @staticmethod
-    async def get_portfolio_data():
-        return {"projects": []}
-
 class DockerRepository:
-    @staticmethod
-    async def start_containers():
-        return {"message": "Containers started successfully"}
-
-    @staticmethod
-    async def stop_containers():
-        return {"message": "Containers stopped successfully"}
-
     @staticmethod
     async def get_container_status():
         return {"status": "All containers are running"}
@@ -117,15 +99,6 @@ class DockerRepository:
                 {"name": "california-api", "status": "stopped", "ports": ["8000:8000"]},
                 {"name": "california-db", "status": "stopped", "ports": ["5432:5432"]}
             ]
-        }
-
-    @staticmethod
-    async def california_health_check():
-        return {
-            "success": True,
-            "message": "California application is healthy",
-            "output": "Web UI: ✓ Responsive\nAPI: ✓ Connected\nDatabase: ✓ Connected\nApplication: ✓ Ready",
-            "containers": []
         }
 
     @staticmethod
