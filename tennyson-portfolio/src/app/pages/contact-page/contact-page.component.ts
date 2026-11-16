@@ -41,17 +41,17 @@ export class ContactPageComponent {
       const formData: ContactFormData = this.contactForm.value;
       
       try {
-        const success = await this.emailService.sendEmail(formData);
-        
-        if (success) {
-          this.snackBar.open('Message sent successfully! I\'ll get back to you soon.', 'Close', {
+        const result = await this.emailService.sendEmail(formData);
+
+        if (result.success) {
+          this.snackBar.open(result.message, 'Close', {
             duration: 5000,
             panelClass: ['success-snackbar']
           });
           this.contactForm.reset();
         } else {
-          this.snackBar.open('Failed to send message. Please try again or contact me directly.', 'Close', {
-            duration: 5000,
+          this.snackBar.open(result.message, 'Close', {
+            duration: 8000,
             panelClass: ['error-snackbar']
           });
         }

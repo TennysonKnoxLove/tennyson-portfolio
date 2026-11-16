@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -17,7 +16,6 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule, 
-    RouterModule, 
     MatCardModule, 
     MatButtonModule, 
     MatChipsModule, 
@@ -55,5 +53,9 @@ export class ProjectsPageComponent implements OnInit {
    */
   filterByCategory(category: ProjectCategory | 'all'): void {
     this.portfolioFacade.setSelectedCategory(category);
+  }
+
+  openDetails(project: Project): void {
+    this.portfolioFacade.openProjectDemo(project);
   }
 }

@@ -36,7 +36,7 @@ RUN mkdir -p uploaded-images
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "/app/backend/entrypoint.sh"]
 
 # Angular production image. This is the default build target.
 FROM node:20-alpine AS web

@@ -32,7 +32,7 @@ export const initialCaliforniaState: CaliforniaState = {
   healthCheckPassed: false,
   terminalOutput: [
     '🌴  Project California Docker Environment (Demo)',
-    'Type "docker-compose up" to start the application stack',
+    'Type "docker-compose up" or "docker compose up" to start the application stack',
     '$ '
   ],
   isExecutingCommand: false,

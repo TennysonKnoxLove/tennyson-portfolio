@@ -1,8 +1,10 @@
 .resource-upload-container {
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem 1.75rem 2.5rem;
   font-family: 'Roboto', sans-serif;
+  color: #1c2333;
+  background: #f4f5f7;
 }
 
 .upload-header {
@@ -12,19 +14,24 @@
   margin-bottom: 2rem;
   
   h1 {
-    font-size: 2rem;
-    font-weight: 500;
+    font-size: 1.75rem;
+    font-weight: 600;
     margin: 0;
+    color: #1c2333;
   }
   
   .back-link {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    color: #3498db;
-    text-decoration: none;
+    color: #9d174d;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
     
     mat-icon {
-      margin-right: 0.5rem;
+      margin-right: 0.35rem;
     }
     
     &:hover {
@@ -38,9 +45,9 @@
   
   h2 {
     font-size: 1.5rem;
-    font-weight: 500;
+    font-weight: 600;
     margin: 0 0 0.5rem;
-    color: #2c3e50;
+    color: #1c2333;
   }
   
   .step-description {
@@ -51,6 +58,19 @@
 
 .full-width {
   width: 100%;
+}
+
+.price-field {
+  width: 320px;
+  max-width: 100%;
+
+  .price-suffix {
+    display: inline-block;
+    margin-left: 16px;
+    padding-right: 16px;
+    color: #6b7280;
+    letter-spacing: 0.04em;
+  }
 }
 
 .tags-section {
@@ -73,7 +93,11 @@
     gap: 1rem;
     
     .tag-field {
-      flex: 1;
+      flex: 0 0 auto;
+    }
+
+    .tag-row-next {
+      margin-left: auto;
     }
   }
   
@@ -145,6 +169,13 @@
       cursor: pointer;
     }
   }
+
+  .image-error {
+    margin: 0;
+    color: #c62828;
+    font-size: 0.9rem;
+    text-align: center;
+  }
 }
 
 .location-grid {
@@ -176,6 +207,7 @@
 
 .review-card {
   margin: 1rem 0 2rem;
+  overflow: hidden;
   
   .review-section {
     margin-bottom: 1.5rem;
@@ -195,11 +227,28 @@
     
     p {
       margin: 0.5rem 0;
+      overflow-wrap: anywhere;
+    }
+
+    .review-description {
+      margin: 0.5rem 0;
+    }
+
+    .review-label {
+      margin: 0;
+    }
+
+    .review-copy {
+      margin: 0.35rem 0 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.5;
     }
     
     .review-image {
       max-width: 100%;
-      max-height: 200px;
+      max-height: 210px;
       width: auto;
       height: auto;
       object-fit: contain;

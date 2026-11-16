@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map, filter } from 'rxjs/operators';
 import * as corpActions from './corp.actions';
 import * as corpSelectors from './corp.selectors';
-import { corpView, MessageLog, BoxConfig } from '../types/corp-demo.types';
+import { corpView, MessageLog, BoxConfig, SmsReceipt } from '../types/corp-demo.types';
 import { SMSForm, WebhookForm } from './corp.state';
 
 @Injectable({
@@ -14,7 +14,6 @@ export class corpFacadeService {
 
   constructor(private store: Store) {}
 
-  // Selectors - Expose observables for components
   get viewModel$(): Observable<any> {
     return this.store.select(corpSelectors.selectcorpViewModel);
   }
@@ -25,6 +24,10 @@ export class corpFacadeService {
 
   get boxes$(): Observable<BoxConfig[]> {
     return this.store.select(corpSelectors.selectBoxes);
+  }
+
+  get smsReceipt$(): Observable<SmsReceipt | null> {
+    return this.store.select(corpSelectors.selectSmsReceipt);
   }
 
   get error$(): Observable<string | null> {
@@ -39,7 +42,6 @@ export class corpFacadeService {
     return this.store.select(corpSelectors.selectIsCreatingWebhook);
   }
 
-  // Error handling for components
   get errorAlert$(): Observable<string> {
     return this.error$.pipe(
       filter(error => !!error),
@@ -47,7 +49,12 @@ export class corpFacadeService {
     );
   }
 
-  // View Management
+  loadDemoData(): void {
+    this.store.dispatch(corpActions.loadBoxes());
+    this.store.dispatch(corpActions.loadMessageLogs());
+    this.store.dispatch(corpActions.loadWebhooks());
+  }
+
   switchView(view: corpView): void {
     this.store.dispatch(corpActions.switchView({ view }));
   }
@@ -56,7 +63,6 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.toggleFullscreen());
   }
 
-  // Selection Management
   setSelectedBox(boxId: string): void {
     this.store.dispatch(corpActions.setSelectedBox({ boxId }));
   }
@@ -65,23 +71,35 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.setSelectedSlot({ slotId }));
   }
 
-  // SMS Operations (Demo)
-  sendSMSDemo(smsForm: SMSForm, selectedBox: string): void {
-    // Validate box selection before dispatching
-    if (!selectedBox) {
-      this.store.dispatch(corpActions.sendSMSDemoFailure({ 
-        error: '📱 Demo: Please select a box from the sidebar first' 
+  sendSms(smsForm: SMSForm, selectedBox: string, selectedSlot: string): void {
+    if (!selectedBox || !selectedSlot) {
+      this.store.dispatch(corpActions.sendSmsFailure({
+        error: 'Select a box and a slot before sending.'
       }));
       return;
     }
 
-    this.store.dispatch(corpActions.sendSMSDemo({ smsForm }));
+    if (!smsForm.phoneNumber || !smsForm.toNumber.trim() || !smsForm.message.trim()) {
+      this.store.dispatch(corpActions.sendSmsFailure({
+        error: 'Choose a from number, enter a recipient, and write a message.'
+      }));
+      return;
+    }
+
+    this.store.dispatch(corpActions.sendSms({
+      smsForm,
+      boxId: selectedBox,
+      slotId: selectedSlot
+    }));
   }
 
-  // Form Management - Business logic for forms
+  clearSmsReceipt(): void {
+    this.store.dispatch(corpActions.clearSmsReceipt());
+  }
+
   createClearedSMSForm(currentForm: SMSForm): SMSForm {
     return {
-      phoneNumber: currentForm.phoneNumber, // Keep phone number
+      phoneNumber: currentForm.phoneNumber,
       toNumber: '',
       message: ''
     };
@@ -95,7 +113,6 @@ export class corpFacadeService {
     return 160;
   }
 
-  // Filter Operations
   setDateFilter(startDate: string, endDate: string): void {
     this.store.dispatch(corpActions.setDateFilter({ startDate, endDate }));
   }
@@ -104,7 +121,6 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.setNumberFilters({ fromNumber, toNumber }));
   }
 
-  // Webhook Operations (Demo)
   openWebhookModal(): void {
     this.store.dispatch(corpActions.openWebhookModal());
   }
@@ -113,15 +129,14 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.closeWebhookModal());
   }
 
-  createWebhookDemo(webhookForm: WebhookForm): void {
-    this.store.dispatch(corpActions.createWebhookDemo({ webhookForm }));
+  createWebhook(webhookForm: WebhookForm): void {
+    this.store.dispatch(corpActions.createWebhook({ webhookForm }));
   }
 
   closeWebhookSuccessModal(): void {
     this.store.dispatch(corpActions.closeWebhookSuccessModal());
   }
 
-  // Utility Operations
   clearError(): void {
     this.store.dispatch(corpActions.clearError());
   }
@@ -130,20 +145,18 @@ export class corpFacadeService {
     this.store.dispatch(corpActions.resetcorpState());
   }
 
-  // Helper methods for component convenience
   getDefaultWebhookForm(): WebhookForm {
     return {
       url: '',
       level: 'controller',
       type: 'regular',
       format: 'discord',
-      controller: 'corp-test-ARIA-Test-310'
+      controller: 'corp-01-max-z'
     };
   }
 
-  // Error handling helper
   handleError(error: string): void {
     alert(error);
     this.clearError();
   }
-} 
+}

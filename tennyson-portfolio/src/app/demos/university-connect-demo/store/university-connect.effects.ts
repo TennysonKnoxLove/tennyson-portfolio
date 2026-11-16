@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { EMPTY, of } from 'rxjs';
-import { map, catchError, switchMap, withLatestFrom } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, catchError, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import * as UniversityConnectActions from './university-connect.actions';
 import { ResourceForm } from './university-connect.state';
 import * as UniversityConnectSelectors from './university-connect.selectors';
@@ -13,12 +13,15 @@ import {
   ResourcePublishResponse,
   DeleteResourceResponse
 } from '../services/university-connect-data.service';
+import { DEMO_RESOURCES } from '../services/demo-resources';
+import { UniversityConnectNavService } from '../services/university-connect-nav.service';
 
 @Injectable()
 export class UniversityConnectEffects {
   private actions$ = inject(Actions);
   private dataService = inject(UniversityConnectDataService);
   private store = inject(Store);
+  private nav = inject(UniversityConnectNavService);
 
   // Authentication Effects (Demo only - for UI demo purposes)
   loginDemo$ = createEffect(() =>
@@ -48,7 +51,9 @@ export class UniversityConnectEffects {
             url: response.url
           })),
           catchError(error => of(UniversityConnectActions.uploadImageFailure({
-            error: 'Failed to upload image - Please try again'
+            error: error?.status === 400
+              ? (error?.error?.detail || 'That file isn’t an image. Choose a PNG, JPG, GIF, or SVG.')
+              : 'Couldn’t upload that image. Try a different file.'
           })))
         )
       )
@@ -66,15 +71,26 @@ export class UniversityConnectEffects {
         this.store.select(UniversityConnectSelectors.selectResourceForm)
       ),
       switchMap(([{ resourceForm }, user, tags, imageUrls, storedForm]) => {
-        if (!user) {
-          return EMPTY;
+        const form = withStoredMedia(resourceForm ?? storedForm, tags, imageUrls);
+        const publish = (userId: string) =>
+          UniversityConnectActions.publishResource({ resourceForm: form, userId });
+
+        if (user?.id) {
+          return of(publish(user.id));
         }
 
-        const form = resourceForm ?? storedForm;
-        return of(UniversityConnectActions.publishResource({
-          resourceForm: withStoredMedia(form, tags, imageUrls),
-          userId: user.id
-        }));
+        return this.dataService.loginDemo({ username: 'demo' }).pipe(
+          switchMap((response) => of(
+            UniversityConnectActions.loginDemoSuccess({
+              user: response.user,
+              message: response.message
+            }),
+            publish(response.user.id)
+          )),
+          catchError(() => of(UniversityConnectActions.publishResourceFailure({
+            error: 'Couldn’t publish that resource. Try again.'
+          })))
+        );
       })
     )
   );
@@ -90,7 +106,7 @@ export class UniversityConnectEffects {
             message: response.message
           })),
           catchError(error => of(UniversityConnectActions.publishResourceFailure({
-            error: 'Failed to publish resource - Please try again'
+            error: publishErrorMessage(error)
           })))
         )
       )
@@ -98,6 +114,14 @@ export class UniversityConnectEffects {
   );
 
   // Real Resource Loading Effects
+  showPublishedResource$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UniversityConnectActions.publishResourceSuccess),
+      tap(() => this.nav.goBrowse())
+    ),
+    { dispatch: false }
+  );
+
   loadAllResources$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UniversityConnectActions.loadAllResources),
@@ -106,8 +130,8 @@ export class UniversityConnectEffects {
           map(resources => UniversityConnectActions.loadAllResourcesSuccess({
             resources
           })),
-          catchError(error => of(UniversityConnectActions.loadAllResourcesFailure({
-            error: 'Failed to load resources - Please try again'
+          catchError(() => of(UniversityConnectActions.loadAllResourcesSuccess({
+            resources: DEMO_RESOURCES
           })))
         )
       )
@@ -147,6 +171,14 @@ export class UniversityConnectEffects {
       )
     )
   );
+}
+
+function publishErrorMessage(error: { error?: { detail?: unknown }; message?: string }): string {
+  const detail = error?.error?.detail;
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail;
+  }
+  return 'Couldn’t publish that resource. Try again.';
 }
 
 function withStoredMedia(form: ResourceForm, tags: string[], imageUrls: string[]): ResourceForm {

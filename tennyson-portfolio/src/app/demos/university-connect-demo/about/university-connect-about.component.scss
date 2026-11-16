@@ -1,0 +1,161 @@
+.about-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  font-family: 'Roboto', sans-serif;
+  color: #1c2333;
+}
+
+.about-hero {
+  max-width: 760px;
+  margin: 0 auto 2rem;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 1rem;
+    font-size: 2.1rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #1c2333;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #9d174d;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lead,
+.vision p,
+.principle-card p,
+.value-list p,
+.close p {
+  color: #3d4556;
+  line-height: 1.6;
+}
+
+.lead {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.vision,
+.close {
+  background: #ffffff;
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.vision {
+  border-left: 4px solid #7b1e3a;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.05rem;
+  }
+}
+
+.principles,
+.value {
+  margin-bottom: 2rem;
+
+  > h2 {
+    margin: 0 0 1rem;
+    font-size: 1.45rem;
+    font-weight: 600;
+  }
+}
+
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.principle-card {
+  background: #ffffff;
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  padding: 1.25rem 1.2rem 1.35rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+
+  h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.value-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+
+  li {
+    background: #ffffff;
+    border: 1px solid #e6e8ee;
+    border-radius: 12px;
+    padding: 1.15rem 1.25rem;
+  }
+
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.close {
+  text-align: center;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.45rem;
+    font-weight: 600;
+  }
+
+  p {
+    max-width: 640px;
+    margin: 0 auto 1.25rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .about-hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .principle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+h1,h2,h3,h4,h5,h6 {
+  color: #1c2333;
+  font-weight: bold;
+  font-style: italic;
+}

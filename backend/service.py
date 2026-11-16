@@ -1,4 +1,4 @@
-from repository import UserRepository, ResourceRepository, DockerRepository
+from repository import UserRepository, ResourceRepository, DockerRepository, CorpRepository
 from fastapi import UploadFile
 
 class UserService:
@@ -50,4 +50,26 @@ class DockerService:
 
     @staticmethod
     async def california_get_app_url():
-        return await DockerRepository.california_get_app_url() 
+        return await DockerRepository.california_get_app_url()
+
+
+class CorpService:
+    @staticmethod
+    async def get_boxes():
+        return await CorpRepository.get_boxes()
+
+    @staticmethod
+    async def get_messages():
+        return await CorpRepository.get_messages()
+
+    @staticmethod
+    async def list_webhooks():
+        return await CorpRepository.list_webhooks()
+
+    @staticmethod
+    async def create_webhook(webhook_data: dict):
+        return await CorpRepository.create_webhook(webhook_data)
+
+    @staticmethod
+    async def send_sms_demo(from_number: str, to_number: str, message: str, box_id: str, slot_id: str):
+        return await CorpRepository.send_sms_demo(from_number, to_number, message, box_id, slot_id) 

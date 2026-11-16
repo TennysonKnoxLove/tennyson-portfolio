@@ -1,8 +1,48 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Header
-from service import UserService, ResourceService, DockerService
+from fastapi import APIRouter, HTTPException, Request, UploadFile, Header
+from pydantic import BaseModel, Field
+from typing import Literal
+from service import UserService, ResourceService, DockerService, CorpService
+from emailer import send_contact_email
 import json
+import os
+import re
+import time
 
 router = APIRouter()
+
+_contact_attempts: dict[str, list[float]] = {}
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class ContactRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    email: str = Field(min_length=3, max_length=200)
+    subject: str = Field(min_length=3, max_length=200)
+    message: str = Field(min_length=10, max_length=5000)
+
+
+@router.post("/contact")
+async def send_contact_message(contact: ContactRequest, request: Request):
+    if not _EMAIL_PATTERN.match(contact.email):
+        raise HTTPException(status_code=400, detail="Invalid email format. Please check your email address.")
+
+    client_host = request.client.host if request.client else "unknown"
+    if _contact_rate_limited(client_host):
+        raise HTTPException(status_code=429, detail="Too many messages. Please try again later.")
+
+    send_contact_email(contact.name, contact.email, contact.subject, contact.message)
+    return {"message": "Message sent successfully! I'll get back to you soon."}
+
+
+def _contact_rate_limited(client_host: str) -> bool:
+    now = time.monotonic()
+    recent = [stamp for stamp in _contact_attempts.get(client_host, []) if now - stamp < 600]
+    if len(recent) >= 5:
+        _contact_attempts[client_host] = recent
+        return True
+    recent.append(now)
+    _contact_attempts[client_host] = recent
+    return False
 
 def transform_resource_for_frontend(resource):
     """Transform resource data from database format to frontend format"""
@@ -100,6 +140,14 @@ async def delete_resource(resource_id: str):
 
 @router.post("/resources/upload-image")
 async def upload_image(file: UploadFile):
+    content_type = file.content_type or ""
+    extension = os.path.splitext(file.filename or "")[1].lower()
+    allowed_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp"}
+    if not content_type.startswith("image/") and extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail="That file isn’t an image. Choose a PNG, JPG, GIF, or SVG.",
+        )
     return await ResourceService.upload_image(file)
 
 @router.get("/docker/status")
@@ -117,4 +165,74 @@ async def california_stop_containers():
 
 @router.get("/docker/california-app")
 async def california_get_app_url():
-    return await DockerService.california_get_app_url() 
+    return await DockerService.california_get_app_url()
+
+
+class WebhookCreate(BaseModel):
+    url: str = Field(min_length=1, max_length=2000)
+    level: Literal["controller", "organization"]
+    type: Literal["regular", "filtered"]
+    format: Literal["discord", "slack"]
+    controller: str = Field(min_length=1, max_length=200)
+
+
+class SmsDemoRequest(BaseModel):
+    fromNumber: str = Field(min_length=1, max_length=40)
+    toNumber: str = Field(min_length=1, max_length=40)
+    message: str = Field(min_length=1, max_length=500)
+    boxId: str = Field(min_length=1, max_length=80)
+    slotId: str = Field(min_length=1, max_length=40)
+
+
+@router.get("/corp/boxes")
+async def get_corp_boxes():
+    return await CorpService.get_boxes()
+
+
+@router.get("/corp/messages")
+async def get_corp_messages():
+    return await CorpService.get_messages()
+
+
+@router.get("/corp/webhooks")
+async def get_corp_webhooks():
+    try:
+        return await CorpService.list_webhooks()
+    except Exception as exc:
+        print(f"Webhook list failed: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not load webhooks. Apply the Prisma schema so the Webhook table exists.",
+        )
+
+
+@router.post("/corp/webhooks")
+async def create_corp_webhook(payload: WebhookCreate):
+    try:
+        return await CorpService.create_webhook({
+            "url": payload.url.strip(),
+            "level": payload.level,
+            "type": payload.type,
+            "format": payload.format,
+            "controller": payload.controller,
+        })
+    except Exception as exc:
+        print(f"Webhook create failed: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not save the webhook. Apply the Prisma schema so the Webhook table exists.",
+        )
+
+
+@router.post("/corp/sms")
+async def send_corp_sms(payload: SmsDemoRequest):
+    try:
+        return await CorpService.send_sms_demo(
+            from_number=payload.fromNumber,
+            to_number=payload.toNumber,
+            message=payload.message,
+            box_id=payload.boxId,
+            slot_id=payload.slotId,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) 

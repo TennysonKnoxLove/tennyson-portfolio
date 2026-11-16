@@ -42,9 +42,9 @@
         <a mat-button color="primary" [href]="project.githubUrl" target="_blank">
           <mat-icon>code</mat-icon> CODE
         </a>
-        <a mat-button color="accent" [routerLink]="['/projects', project.id]">
+        <button mat-button color="accent" type="button" (click)="openDetails(project)">
           <mat-icon>visibility</mat-icon> DETAILS
-        </a>
+        </button>
       </mat-card-actions>
     </mat-card>
   </div>

@@ -5,11 +5,21 @@ import { delay, catchError } from 'rxjs/operators';
 import { DockerResponse, DockerContainer } from '../types/california-demo.types';
 import { environment } from '../../../../environments/environment';
 
+function apiOrigin(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+  }
+  return environment.apiUrl;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class CaliforniaApiService {
-  private readonly API_BASE = `${environment.apiUrl}/api/docker`;
+  private readonly API_BASE = `${apiOrigin()}/docker`;
 
   constructor(private http: HttpClient) {}
 
@@ -69,15 +79,15 @@ export class CaliforniaApiService {
 
   private getSimulatedStatusResponse(): Observable<DockerResponse> {
     const containers: DockerContainer[] = [
-      { name: 'california-web', status: 'running', ports: ['3000:3000'], uptime: '2 minutes' },
-      { name: 'california-api', status: 'running', ports: ['8000:8000'], uptime: '2 minutes' },
-      { name: 'california-db', status: 'running', ports: ['5432:5432'], uptime: '2 minutes' }
+      { name: 'california-web', status: 'stopped', ports: ['3000:3000'] },
+      { name: 'california-api', status: 'stopped', ports: ['8000:8000'] },
+      { name: 'california-db', status: 'stopped', ports: ['5432:5432'] }
     ];
 
     return of({
       success: true,
       message: 'Status check completed (Demo)',
-      output: 'abc123def456   california-web:latest   "npm start"   2 minutes ago   Up 2 minutes   0.0.0.0:3000->3000/tcp   california-web\ndef456ghi789   california-api:latest   "python app.py"   2 minutes ago   Up 2 minutes   0.0.0.0:8000->8000/tcp   california-api\nghi789jkl012   postgres:13   "docker-entrypoint..."   2 minutes ago   Up 2 minutes   0.0.0.0:5432->5432/tcp   california-db',
+      output: 'abc123def456   california-web:latest   "npm start"   Exited   california-web\ndef456ghi789   california-api:latest   "python app.py"   Exited   california-api\nghi789jkl012   postgres:13   "docker-entrypoint..."   Exited   california-db\nNo containers are running.',
       containers
     }).pipe(delay(300));
   }

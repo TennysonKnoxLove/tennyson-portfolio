@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { UniversityConnectDialogRefactoredComponent } from '../dialog/university-connect-dialog-refactored.component';
-import { UniversityConnectFacade } from '../store/university-connect.facade';
+import { UniversityConnectNavService } from './university-connect-nav.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,22 +9,22 @@ import { UniversityConnectFacade } from '../store/university-connect.facade';
 export class UniversityConnectDialogService {
   constructor(
     private dialog: MatDialog,
-    private facade: UniversityConnectFacade
+    private nav: UniversityConnectNavService
   ) {}
 
   /**
-   * 🎭 Opens the University Connect demo dialog
-   * @returns A reference to the dialog
+   * Opens the University Connect demo in a dialog, same pattern as the other project demos.
    */
   openUniversityConnectDemo(): void {
-    // Reset state when opening dialog
-    this.facade.resetState();
-    
+    this.nav.goHome();
+
     this.dialog.open(UniversityConnectDialogRefactoredComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
-      height: '80vh',
-      panelClass: 'university-connect-dialog-panel'
+      width: '95vw',
+      height: '90vh',
+      maxWidth: '1400px',
+      maxHeight: '900px',
+      panelClass: 'university-connect-dialog-panel',
+      autoFocus: false
     });
   }
 } 

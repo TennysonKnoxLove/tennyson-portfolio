@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
-import { map, startWith, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import * as PortfolioActions from './portfolio.actions';
 import * as PortfolioSelectors from './portfolio.selectors';
 import { PortfolioState } from './portfolio.state';
@@ -23,12 +23,6 @@ export class PortfolioFacadeService {
   readonly techStack$: Observable<TechStack[] | null>;
   readonly developerBio$: Observable<DeveloperBio | null>;
 
-  // Observable for the currently selected project
-  readonly selectedProject$: Observable<Project | null | undefined>;
-
-  // Computed loading state that includes project selection
-  readonly isLoadingWithProject$: Observable<boolean>;
-
   // Project filtering
   private selectedCategorySubject = new BehaviorSubject<ProjectCategory | 'all'>('all');
   readonly selectedCategory$ = this.selectedCategorySubject.asObservable();
@@ -44,18 +38,6 @@ export class PortfolioFacadeService {
     this.error$ = this.store.pipe(select(PortfolioSelectors.selectPortfolioError));
     this.techStack$ = this.store.pipe(select(PortfolioSelectors.selectTechStack));
     this.developerBio$ = this.store.pipe(select(PortfolioSelectors.selectDeveloperBio));
-    this.selectedProject$ = this.store.pipe(select(PortfolioSelectors.selectCurrentProject));
-
-    // Computed loading state
-    this.isLoadingWithProject$ = combineLatest([
-      this.isLoading$,
-      this.selectedProject$.pipe(startWith(undefined))
-    ]).pipe(
-      map(([portfolioLoading, project]) => {
-        return portfolioLoading || project === undefined;
-      })
-    );
-
     // Computed filtered projects
     this.filteredProjects$ = combineLatest([
       this.projects$,
@@ -75,30 +57,6 @@ export class PortfolioFacadeService {
     this.store.dispatch(PortfolioActions.loadLandingPageStaticData());
   }
 
-  // Dispatcher for setting the current project ID
-  setCurrentProject(projectId: string | null): void {
-    this.store.dispatch(PortfolioActions.setCurrentProjectId({ projectId }));
-  }
-
-  /**
-   * Handle route change for project detail page
-   * Contains the business logic for when to load portfolio data
-   */
-  handleProjectRouteChange(projectId: string | null): void {
-    this.setCurrentProject(projectId);
-
-    // Check if we need to load portfolio data
-    this.projects$.pipe(take(1)).subscribe(projects => {
-      const shouldLoadPortfolio = !projects || 
-                                 projects.length === 0 || 
-                                 (projectId && !projects.find(p => p.id === projectId));
-      
-      if (shouldLoadPortfolio) {
-        this.loadPortfolio();
-      }
-    });
-  }
-
   /**
    * Set the selected category filter
    */
@@ -107,12 +65,10 @@ export class PortfolioFacadeService {
   }
 
   /**
-   * Open demo for the currently selected project
+   * Open the in-app demo popup for a project.
    */
-  openCurrentProjectDemo(): void {
-    this.selectedProject$.pipe(take(1)).subscribe(project => {
-      this.projectDemoService.openProjectDemo(project);
-    });
+  openProjectDemo(project: Project): void {
+    this.projectDemoService.openProjectDemo(project);
   }
 
   /**

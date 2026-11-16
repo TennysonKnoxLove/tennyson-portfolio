@@ -1,0 +1,85 @@
+<div class="detail-backdrop" *ngIf="nav.selectedResource$ | async as resource" (click)="closeAll()">
+  <article
+    class="detail-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="resource-detail-title"
+    (click)="$event.stopPropagation()">
+    <button type="button" class="detail-close" (click)="closeAll()" aria-label="Close details">
+      <mat-icon>close</mat-icon>
+    </button>
+    <div class="detail-media" *ngIf="resource.image">
+      <img [src]="resource.image" [alt]="resource.name">
+    </div>
+    <div class="detail-body">
+      <p class="category" *ngIf="resource.category">{{ resource.category }}</p>
+      <h1 id="resource-detail-title">{{ resource.name }}</h1>
+
+      <div class="meta-row">
+        <span class="price">${{ resource.price | number:'1.2-2' }} <small>per hour</small></span>
+        <span class="location" *ngIf="locationLine(resource)">
+          <mat-icon>place</mat-icon>
+          {{ locationLine(resource) }}
+        </span>
+      </div>
+
+      <section class="detail-section">
+        <h2>Description</h2>
+        <div class="description-panel">
+          <p class="description">{{ resource.description }}</p>
+        </div>
+      </section>
+
+      <section class="detail-section" *ngIf="resource.tags?.length">
+        <h2>Tags</h2>
+        <mat-chip-set class="detail-tags">
+          <mat-chip *ngFor="let tag of resource.tags">{{ tag }}</mat-chip>
+        </mat-chip-set>
+      </section>
+
+      <section class="detail-section">
+        <h2>Availability</h2>
+        <ul class="hours" *ngIf="openHours(resource).length; else noHours">
+          <li *ngFor="let day of openHours(resource)">
+            <span>{{ day.label }}</span>
+            <strong>{{ day.hours }}</strong>
+          </li>
+        </ul>
+        <ng-template #noHours>
+          <p class="quiet">Hours haven’t been listed for this resource.</p>
+        </ng-template>
+      </section>
+
+      <button mat-flat-button class="book-button" type="button" (click)="bookingOpen = true">
+        Book Now
+      </button>
+    </div>
+  </article>
+</div>
+
+<div class="booking-backdrop" *ngIf="bookingOpen" (click)="closeBooking()">
+  <div
+    class="booking-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="booking-title"
+    (click)="$event.stopPropagation()">
+    <div class="booking-header">
+      <span class="booking-mark" aria-hidden="true">
+        <mat-icon>event_available</mat-icon>
+      </span>
+      <div>
+        <p class="booking-kicker">Portfolio demo</p>
+        <h2 id="booking-title">Booking isn’t live here</h2>
+      </div>
+    </div>
+    <p>
+      In the full University Connect app, Book Now would check this resource’s open hours,
+      let you pick a time, and send a reservation to the campus that owns it.
+    </p>
+    <p class="booking-note">Nothing is reserved, and no payment is taken.</p>
+    <div class="booking-actions">
+      <button mat-flat-button class="booking-close" type="button" (click)="closeBooking()">Got it</button>
+    </div>
+  </div>
+</div>

@@ -58,4 +58,8 @@ export class LandingPageComponent implements OnInit {
     this.portfolioFacade.loadPortfolio();
     this.portfolioFacade.loadLandingPageStaticData();
   }
+
+  openDetails(project: Project): void {
+    this.portfolioFacade.openProjectDemo(project);
+  }
 }

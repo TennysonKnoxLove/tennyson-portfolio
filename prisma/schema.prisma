@@ -35,3 +35,14 @@ model Resource {
   resourceOwnerId String
   price       Float
 }
+
+// Webhooks created from the corp.io demo.
+model Webhook {
+  id         String   @id @default(cuid())
+  url        String
+  level      String
+  type       String
+  format     String
+  controller String
+  createdAt  DateTime @default(now())
+}

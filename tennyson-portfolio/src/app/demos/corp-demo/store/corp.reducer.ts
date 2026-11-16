@@ -1,12 +1,10 @@
 import { createReducer, on } from '@ngrx/store';
 import { corpState, initialcorpState } from './corp.state';
 import * as corpActions from './corp.actions';
-import { corpView } from '../types/corp-demo.types';
 
 export const corpReducer = createReducer(
   initialcorpState,
 
-  // View Actions
   on(corpActions.switchView, (state, { view }) => ({
     ...state,
     currentView: view
@@ -17,11 +15,10 @@ export const corpReducer = createReducer(
     isFullscreen: !state.isFullscreen
   })),
 
-  // Selection Actions
   on(corpActions.setSelectedBox, (state, { boxId }) => ({
     ...state,
     selectedBox: boxId,
-    selectedSlot: '' // Reset slot when box changes
+    selectedSlot: ''
   })),
 
   on(corpActions.setSelectedSlot, (state, { slotId }) => ({
@@ -29,28 +26,52 @@ export const corpReducer = createReducer(
     selectedSlot: slotId
   })),
 
-  // SMS Actions (Demo)
-  on(corpActions.sendSMSDemo, (state) => ({
+  on(corpActions.loadBoxesSuccess, (state, { boxes }) => ({
+    ...state,
+    boxes,
+    loadError: null
+  })),
+
+  on(corpActions.loadBoxesFailure, (state, { error }) => ({
+    ...state,
+    loadError: error
+  })),
+
+  on(corpActions.loadMessageLogsSuccess, (state, { messageLogs }) => ({
+    ...state,
+    messageLogs
+  })),
+
+  on(corpActions.loadMessageLogsFailure, (state, { error }) => ({
+    ...state,
+    loadError: state.loadError ?? error
+  })),
+
+  on(corpActions.sendSms, (state) => ({
     ...state,
     isSendingSMS: true,
     error: null
   })),
 
-  on(corpActions.sendSMSDemoSuccess, (state, { messageLog }) => ({
+  on(corpActions.sendSmsSuccess, (state, { messageLog, receipt }) => ({
     ...state,
     isSendingSMS: false,
     messageLogs: [messageLog, ...state.messageLogs],
-    currentView: corpView.MESSAGE_LOG,
+    smsReceipt: receipt,
     error: null
   })),
 
-  on(corpActions.sendSMSDemoFailure, (state, { error }) => ({
+  on(corpActions.sendSmsFailure, (state, { error }) => ({
     ...state,
     isSendingSMS: false,
     error
   })),
 
-  // Filter Actions
+  on(corpActions.clearSmsReceipt, (state) => ({
+    ...state,
+    smsReceipt: null
+  })),
+
   on(corpActions.setDateFilter, (state, { startDate, endDate }) => ({
     ...state,
     startDate,
@@ -63,7 +84,6 @@ export const corpReducer = createReducer(
     toNumberFilter: toNumber
   })),
 
-  // Webhook Actions (Demo)
   on(corpActions.openWebhookModal, (state) => ({
     ...state,
     showWebhookModal: true,
@@ -75,22 +95,35 @@ export const corpReducer = createReducer(
     showWebhookModal: false
   })),
 
-  on(corpActions.createWebhookDemo, (state) => ({
+  on(corpActions.loadWebhooksSuccess, (state, { webhooks }) => ({
+    ...state,
+    webhooks,
+    webhooksError: null
+  })),
+
+  on(corpActions.loadWebhooksFailure, (state, { error }) => ({
+    ...state,
+    webhooksError: error
+  })),
+
+  on(corpActions.createWebhook, (state) => ({
     ...state,
     isCreatingWebhook: true,
     error: null
   })),
 
-  on(corpActions.createWebhookDemoSuccess, (state, { successMessage }) => ({
+  on(corpActions.createWebhookSuccess, (state, { webhook }) => ({
     ...state,
     isCreatingWebhook: false,
     showWebhookModal: false,
     showWebhookSuccessModal: true,
-    webhookSuccessMessage: successMessage,
+    createdWebhook: webhook,
+    webhooks: [webhook, ...state.webhooks.filter(item => item.id !== webhook.id)],
+    webhooksError: null,
     error: null
   })),
 
-  on(corpActions.createWebhookDemoFailure, (state, { error }) => ({
+  on(corpActions.createWebhookFailure, (state, { error }) => ({
     ...state,
     isCreatingWebhook: false,
     error
@@ -99,10 +132,9 @@ export const corpReducer = createReducer(
   on(corpActions.closeWebhookSuccessModal, (state) => ({
     ...state,
     showWebhookSuccessModal: false,
-    webhookSuccessMessage: ''
+    createdWebhook: null
   })),
 
-  // Reset Actions
   on(corpActions.resetcorpState, () => ({
     ...initialcorpState
   })),
@@ -111,4 +143,4 @@ export const corpReducer = createReducer(
     ...state,
     error: null
   }))
-); 
+);

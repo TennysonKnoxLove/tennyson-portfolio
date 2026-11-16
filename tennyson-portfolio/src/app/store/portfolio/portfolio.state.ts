@@ -8,8 +8,6 @@ export interface PortfolioState {
   error: any | null;
   techStack: TechStack[] | null; // Add techStack
   developerBio: DeveloperBio | null; // Add developerBio
-  currentProjectId: string | null; // To track the ID of the project being viewed
-  // selectedProject: Project | null; // Will be derived by a selector
 }
 
 export const initialPortfolioState: PortfolioState = {
@@ -19,5 +17,4 @@ export const initialPortfolioState: PortfolioState = {
   error: null,
   techStack: null, // Initialize techStack
   developerBio: null, // Initialize developerBio
-  currentProjectId: null, // Initialize currentProjectId
 }; 

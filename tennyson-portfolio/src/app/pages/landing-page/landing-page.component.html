@@ -123,9 +123,9 @@
           </mat-card-content>
           
           <mat-card-actions>
-            <a mat-button color="primary" [routerLink]="['/projects', project.id]">
+            <button mat-button color="primary" type="button" (click)="openDetails(project)">
               <mat-icon>visibility</mat-icon> View Details
-            </a>
+            </button>
           </mat-card-actions>
         </mat-card>
       </div>

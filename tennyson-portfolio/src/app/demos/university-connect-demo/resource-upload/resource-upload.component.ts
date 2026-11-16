@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -12,8 +13,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
+import { UniversityConnectNavService } from '../services/university-connect-nav.service';
 import { ResourceForm } from '../store/university-connect.state';
 import { readResourceImages } from '../utils/read-resource-images';
+import { US_STATES } from '../utils/us-states';
 import {
   DayHours,
   DayOfWeek,
@@ -56,15 +59,37 @@ export class ResourceUploadComponent implements OnInit {
   // UI state properties
   selectedTags: string[] = [];
   uploadedImage: string | null = null;
+  imageError: string | null = null;
+  publishError: string | null = null;
   readonly weekDays = WEEK_DAYS;
+  readonly states = US_STATES;
   
+  private awaitingImageUpload = false;
+  private awaitingPublish = false;
+
   constructor(
     private fb: FormBuilder,
-    public facade: UniversityConnectFacade
+    public facade: UniversityConnectFacade,
+    private nav: UniversityConnectNavService,
+    private destroyRef: DestroyRef
   ) {}
+
+  goHome(): void {
+    this.nav.goHome();
+  }
   
   ngOnInit(): void {
     this.initForms();
+    this.facade.error$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(error => {
+      if (this.awaitingImageUpload && error) {
+        this.imageError = error;
+        this.awaitingImageUpload = false;
+      }
+      if (this.awaitingPublish && error) {
+        this.publishError = error;
+        this.awaitingPublish = false;
+      }
+    });
   }
   
   initForms(): void {
@@ -77,7 +102,7 @@ export class ResourceUploadComponent implements OnInit {
     
     // Pricing Form
     this.pricingForm = this.fb.group({
-      price: ['', [Validators.required, Validators.min(0)]]
+      price: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]]
     });
     
     // Location Form
@@ -111,23 +136,31 @@ export class ResourceUploadComponent implements OnInit {
   }
   
   onImageSelected(event: Event): void {
-    const files = (event.target as HTMLInputElement | null)?.files;
+    const input = event.target as HTMLInputElement | null;
+    const files = input?.files;
     if (!files?.length) {
       return;
     }
 
     readResourceImages(files, (file, previewUrl) => {
-      if (!this.uploadedImage) {
-        this.uploadedImage = previewUrl;
-        this.imagesForm.patchValue({ image: previewUrl });
-      }
+      this.imageError = null;
+      this.awaitingImageUpload = true;
+      this.uploadedImage = previewUrl;
+      this.imagesForm.patchValue({ image: previewUrl });
       this.facade.addImage(previewUrl);
       this.facade.uploadImage(file);
+    }, () => {
+      this.awaitingImageUpload = false;
+      this.imageError = 'That file isn’t an image. Choose a PNG, JPG, GIF, or SVG.';
     });
+
+    if (input) {
+      input.value = '';
+    }
   }
   
   submitResource(): void {
-    // Check if tags are provided (now required)
+    this.publishError = null;
     const hasRequiredTags = this.selectedTags.length > 0;
     
     if (
@@ -160,20 +193,17 @@ export class ResourceUploadComponent implements OnInit {
         availability: availabilityFromHours(this.availabilityForm.value)
       };
       
-      // Delegate to facade
+      this.awaitingPublish = true;
       this.facade.publishResource(resourceForm);
     } else {
-      // Show specific error message based on what's missing
-      let errorMessage = '🎭 Please fill in all required fields:';
       const missingFields = [];
       
-      if (!this.basicInfoForm.valid) missingFields.push('Basic Information');
-      if (!this.pricingForm.valid) missingFields.push('Pricing');
-      if (!this.locationForm.valid) missingFields.push('Location');
-      if (!hasRequiredTags) missingFields.push('Tags (at least one required)');
+      if (!this.basicInfoForm.valid) missingFields.push('basic information');
+      if (!this.pricingForm.valid) missingFields.push('pricing');
+      if (!this.locationForm.valid) missingFields.push('location');
+      if (!hasRequiredTags) missingFields.push('at least one tag');
       
-      errorMessage += ' ' + missingFields.join(', ') + '. (Demo)';
-      this.facade.showSuccessModal(errorMessage);
+      this.publishError = `Add the missing fields before publishing: ${missingFields.join(', ')}.`;
     }
   }
 

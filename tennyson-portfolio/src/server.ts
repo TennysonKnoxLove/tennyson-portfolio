@@ -50,7 +50,14 @@ app.get('**', (req, res, next) => {
       providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
     })
     .then((html) => res.send(html))
-    .catch((err) => next(err));
+    .catch((err) => {
+      // Angular throws NG04002 (code 4002) when the URL matches no route.
+      if (typeof err === 'object' && err !== null && 'code' in err && err.code === 4002) {
+        res.status(404).type('text/plain').send('Not found');
+        return;
+      }
+      next(err);
+    });
 });
 
 /**

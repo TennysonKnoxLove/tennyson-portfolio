@@ -1,28 +1,17 @@
 <div class="resource-listing-container">
   <div class="listing-header">
     <h1>Browse Resources</h1>
-    <a routerLink="/projects/university-connect" class="back-link">
-      <mat-icon>arrow_back</mat-icon> Back to University Connect
-    </a>
+    <button mat-flat-button color="primary" type="button" (click)="goUpload()">
+      <mat-icon>upload</mat-icon>
+      Upload Resource
+    </button>
   </div>
 
-  <div class="search-filters-section">
-    <div class="search-box">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search resources</mat-label>
-        <input
-          matInput
-          [formControl]="searchControl"
-          placeholder="Search by description..."
-        />
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
-    </div>
-
-    <div class="filters-container">
+  <div class="listing-body">
+    <aside class="filters-container">
       <div class="filters-header">
         <h2>Filters</h2>
-        <button mat-icon-button (click)="clearFilters()">
+        <button mat-button type="button" (click)="clearFilters()">
           <mat-icon>refresh</mat-icon> Reset
         </button>
       </div>
@@ -99,150 +88,162 @@
         </div>
 
         <div class="filter-actions">
-          <button mat-raised-button color="primary" (click)="applyFilters()">
+          <button mat-raised-button color="primary" type="button" (click)="applyFilters()">
             Apply Filters
           </button>
-          <button mat-button (click)="clearFilters()">Clear All</button>
+          <button mat-button type="button" (click)="clearFilters()">Clear All</button>
         </div>
       </form>
-    </div>
-  </div>
+    </aside>
 
-  <div class="results-section">
-    <div class="results-header">
-      <div class="results-count">
-        <p>
-          Showing
-          {{ (facade.filteredResources$ | async)?.length || 0 }} resources
-        </p>
-      </div>
-      <div class="view-options">
-        <button
-          mat-icon-button
-          (click)="toggleDisplayMode()"
-          [matTooltip]="
-            displayMode === 'grid'
-              ? 'Switch to list view'
-              : 'Switch to grid view'
-          "
-        >
-          <mat-icon>{{
-            displayMode === "grid" ? "view_list" : "grid_view"
-          }}</mat-icon>
-        </button>
-
-        <mat-form-field appearance="outline" class="sort-field">
-          <mat-label>Sort By</mat-label>
-          <mat-select>
-            <mat-option value="newest">Newest</mat-option>
-            <mat-option value="price_low">Price: Low to High</mat-option>
-            <mat-option value="price_high">Price: High to Low</mat-option>
-            <mat-option value="name">Name</mat-option>
-          </mat-select>
+    <div class="listing-main">
+      <div class="search-box">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search resources</mat-label>
+          <input
+            matInput
+            [formControl]="searchControl"
+            placeholder="Search by name or description..."
+          />
+          <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
       </div>
-    </div>
 
-    <div class="resources-loading" *ngIf="facade.isLoading$ | async">
-      <p>Loading resources...</p>
-    </div>
-
-    <div class="resources-error" *ngIf="facade.error$ | async">
-      <p>Error loading resources. Please try again later.</p>
-    </div>
-
-    <div
-      class="no-results"
-      *ngIf="
-        (facade.filteredResources$ | async)?.length === 0 &&
-        !(facade.isLoading$ | async)
-      "
-    >
-      <p>No resources found matching your criteria.</p>
-      <button mat-button color="primary" (click)="clearFilters()">
-        Clear Filters
-      </button>
-    </div>
-
-    <!-- Grid View -->
-    <div
-      class="resources-grid"
-      *ngIf="
-        displayMode === 'grid' && (facade.filteredResources$ | async)?.length
-      "
-    >
-      <mat-card
-        class="resource-card"
-        *ngFor="let resource of facade.filteredResources$ | async"
-      >
-        <img mat-card-image [src]="resource.image" [alt]="resource.name" />
-        <mat-card-content>
-          <h3>{{ resource.name }}</h3>
-          <p>{{ resource.description }}</p>
-          <div class="resource-meta">
-            <span class="price">${{ resource.price.toFixed(2) }}</span>
-            <span class="location"
-              >{{ resource.location.city }}, {{ resource.location.state }}</span
+      <div class="results-section">
+        <div class="results-header">
+          <div class="results-count">
+            <p>
+              Showing
+              {{ (facade.filteredResources$ | async)?.length || 0 }} resources
+            </p>
+          </div>
+          <div class="view-options">
+            <button
+              mat-icon-button
+              type="button"
+              (click)="toggleDisplayMode()"
+              [matTooltip]="
+                displayMode === 'grid'
+                  ? 'Switch to list view'
+                  : 'Switch to grid view'
+              "
             >
-          </div>
-          <div class="resource-tags">
-            <mat-chip-set>
-              <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
-                {{ tag }}
-              </mat-chip>
-              <mat-chip *ngIf="resource.tags.length > 3"
-                >+{{ resource.tags.length - 3 }}</mat-chip
-              >
-            </mat-chip-set>
-          </div>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary">View Details</button>
-          <button mat-stroked-button color="primary">Check Availability</button>
-        </mat-card-actions>
-      </mat-card>
-    </div>
+              <mat-icon>{{
+                displayMode === "grid" ? "view_list" : "grid_view"
+              }}</mat-icon>
+            </button>
 
-    <!-- List View -->
-    <div
-      class="resources-list"
-      *ngIf="
-        displayMode === 'list' && (facade.filteredResources$ | async)?.length
-      "
-    >
-      <mat-card
-        class="resource-list-item"
-        *ngFor="let resource of facade.filteredResources$ | async"
-      >
-        <div class="list-item-image">
-          <img [src]="resource.image" [alt]="resource.name" />
-        </div>
-        <div class="list-item-content">
-          <h3>{{ resource.name }}</h3>
-          <p>{{ resource.description }}</p>
-          <div class="resource-meta">
-            <span class="price">${{ resource.price.toFixed(2) }}</span>
-            <span class="location"
-              >{{ resource.location.city }}, {{ resource.location.state }}</span
-            >
-            <span class="category">{{ resource.category }}</span>
-          </div>
-          <div class="resource-tags">
-            <mat-chip-set>
-              <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
-                {{ tag }}
-              </mat-chip>
-              <mat-chip *ngIf="resource.tags.length > 3"
-                >+{{ resource.tags.length - 3 }}</mat-chip
-              >
-            </mat-chip-set>
+            <mat-form-field appearance="outline" class="sort-field">
+              <mat-label>Sort By</mat-label>
+              <mat-select>
+                <mat-option value="newest">Newest</mat-option>
+                <mat-option value="price_low">Price: Low to High</mat-option>
+                <mat-option value="price_high">Price: High to Low</mat-option>
+                <mat-option value="name">Name</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
         </div>
-        <div class="list-item-actions">
-          <button mat-button color="primary">View Details</button>
-          <button mat-stroked-button color="primary">Check Availability</button>
+
+        <div class="resources-loading" *ngIf="facade.isLoadingResources$ | async">
+          <p>Loading resources...</p>
         </div>
-      </mat-card>
+
+        <div
+          class="no-results"
+          *ngIf="
+            (facade.filteredResources$ | async)?.length === 0 &&
+            !(facade.isLoadingResources$ | async)
+          "
+        >
+          <p>No resources found matching your criteria.</p>
+          <div class="empty-actions">
+            <button mat-button color="primary" type="button" (click)="clearFilters()">
+              Clear Filters
+            </button>
+            <button mat-stroked-button color="primary" type="button" (click)="goUpload()">
+              Upload a resource
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="resources-grid"
+          *ngIf="
+            displayMode === 'grid' && (facade.filteredResources$ | async)?.length
+          "
+        >
+          <mat-card
+            class="resource-card"
+            *ngFor="let resource of facade.filteredResources$ | async"
+          >
+            <img mat-card-image [src]="resource.image" [alt]="resource.name" />
+            <mat-card-content>
+              <h3>{{ resource.name }}</h3>
+              <p class="resource-description">{{ resource.description }}</p>
+              <div class="resource-meta">
+                <span class="price">${{ resource.price | number:'1.2-2' }}</span>
+                <span class="location"
+                  >{{ resource.location.city }}, {{ resource.location.state }}</span
+                >
+              </div>
+              <div class="resource-tags">
+                <mat-chip-set>
+                  <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
+                    {{ tag }}
+                  </mat-chip>
+                  <mat-chip *ngIf="resource.tags.length > 3"
+                    >+{{ resource.tags.length - 3 }}</mat-chip
+                  >
+                </mat-chip-set>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-button color="primary" type="button" (click)="openDetails(resource)">View Details</button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <div
+          class="resources-list"
+          *ngIf="
+            displayMode === 'list' && (facade.filteredResources$ | async)?.length
+          "
+        >
+          <mat-card
+            class="resource-list-item"
+            *ngFor="let resource of facade.filteredResources$ | async"
+          >
+            <div class="list-item-image">
+              <img [src]="resource.image" [alt]="resource.name" />
+            </div>
+            <div class="list-item-content">
+              <h3>{{ resource.name }}</h3>
+              <p class="resource-description">{{ resource.description }}</p>
+              <div class="resource-meta">
+                <span class="price">${{ resource.price | number:'1.2-2' }}</span>
+                <span class="location"
+                  >{{ resource.location.city }}, {{ resource.location.state }}</span
+                >
+                <span class="category">{{ resource.category }}</span>
+              </div>
+              <div class="resource-tags">
+                <mat-chip-set>
+                  <mat-chip *ngFor="let tag of resource.tags.slice(0, 3)">
+                    {{ tag }}
+                  </mat-chip>
+                  <mat-chip *ngIf="resource.tags.length > 3"
+                    >+{{ resource.tags.length - 3 }}</mat-chip
+                  >
+                </mat-chip-set>
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button mat-button color="primary" type="button" (click)="openDetails(resource)">View Details</button>
+            </div>
+          </mat-card>
+        </div>
+      </div>
     </div>
   </div>
 </div>

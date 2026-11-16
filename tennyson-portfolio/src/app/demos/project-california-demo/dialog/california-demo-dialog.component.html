@@ -100,7 +100,7 @@
             [(ngModel)]="terminalInput" 
             (keydown.enter)="executeDockerCommand()"
             [disabled]="(isExecutingCommand | async) ?? false"
-            placeholder="Type 'docker-compose up' to start the real Project California app...">
+            placeholder="Type 'docker-compose up' or 'docker compose up' to start the app...">
         </div>
       </div>
       
@@ -108,11 +108,11 @@
       <div class="help-section">
         <h3>💡 Getting Started</h3>
         <ul>
-          <li>Type <code>docker-compose up</code> to start the real Project California application</li>
+          <li>Type <code>docker-compose up</code> or <code>docker compose up</code> to start the real Project California application</li>
           <li>This will build and run actual Docker containers with a full-stack app</li>
           <li>Once running, switch to the "Live Application" tab to interact with the real app</li>
-          <li>Use <code>docker ps</code> to check container status</li>
-          <li>Use <code>docker-compose down</code> to stop all containers</li>
+          <li>Use <code>docker ps</code> to check container status. It does not start or stop anything</li>
+          <li>Use <code>docker-compose down</code> or <code>docker compose down</code> to stop containers that are already running</li>
         </ul>
       </div>
     </div>

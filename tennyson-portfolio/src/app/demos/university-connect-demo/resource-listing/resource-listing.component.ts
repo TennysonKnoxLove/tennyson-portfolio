@@ -13,6 +13,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
+import { UniversityConnectNavService } from '../services/university-connect-nav.service';
+import { Resource } from '../../../types/resource.types';
 
 @Component({
   selector: 'app-resource-listing',
@@ -59,7 +61,8 @@ export class ResourceListingComponent implements OnInit {
   
   constructor(
     private fb: FormBuilder,
-    public facade: UniversityConnectFacade
+    public facade: UniversityConnectFacade,
+    private nav: UniversityConnectNavService
   ) {
     this.filterForm = this.fb.group({
       priceMin: [0],
@@ -123,5 +126,13 @@ export class ResourceListingComponent implements OnInit {
   
   toggleDisplayMode(): void {
     this.displayMode = this.displayMode === 'grid' ? 'list' : 'grid';
+  }
+
+  goUpload(): void {
+    this.nav.goUpload();
+  }
+
+  openDetails(resource: Resource): void {
+    this.nav.openDetails(resource);
   }
 } 

@@ -6,11 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { MessageLog, BoxConfig, corpView } from '../types/corp-demo.types';
+import { filter, take, takeUntil } from 'rxjs/operators';
+import { MessageLog, BoxConfig, SmsReceipt, corpView } from '../types/corp-demo.types';
 import { SMSForm, WebhookForm } from '../store/corp.state';
 import { corpFacadeService } from '../store/corp.facade';
 import { CsvExportDialogComponent } from './csv-export-dialog.component';
+import { SmsDemoDialogComponent } from './sms-demo-dialog.component';
 
 @Component({
   selector: 'app-corp-demo-dialog',
@@ -47,6 +48,7 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
   currentToNumber: string = '';
   
   private destroy$ = new Subject<void>();
+  private webhookSuccessWasOpen = false;
 
   constructor(
     public dialogRef: MatDialogRef<corpDemoDialogComponent>,
@@ -92,6 +94,8 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
     });
 
     // Subscribe to filter changes to keep local values in sync
+    this.corpFacade.loadDemoData();
+
     this.viewModel$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(vm => {
@@ -100,7 +104,24 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
         this.currentEndDate = vm.endDate || '';
         this.currentFromNumber = vm.fromNumberFilter || '';
         this.currentToNumber = vm.toNumberFilter || '';
+        if (vm.showWebhookSuccessModal && !this.webhookSuccessWasOpen) {
+          this.webhookForm = this.corpFacade.getDefaultWebhookForm();
+        }
+        this.webhookSuccessWasOpen = !!vm.showWebhookSuccessModal;
       }
+    });
+
+    this.corpFacade.smsReceipt$.pipe(
+      filter((receipt): receipt is SmsReceipt => !!receipt),
+      takeUntil(this.destroy$)
+    ).subscribe(receipt => {
+      this.smsForm = this.corpFacade.createClearedSMSForm(this.smsForm);
+      this.corpFacade.clearSmsReceipt();
+      this.dialog.open(SmsDemoDialogComponent, {
+        width: '500px',
+        maxWidth: '90vw',
+        data: receipt
+      });
     });
   }
 
@@ -127,20 +148,41 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
   // Selection - delegate to facade
   onBoxSelectionChange(boxId: string): void {
     this.corpFacade.setSelectedBox(boxId);
+    this.smsForm.phoneNumber = '';
   }
 
   onSlotSelectionChange(slotId: string): void {
     this.corpFacade.setSelectedSlot(slotId);
+    this.smsForm.phoneNumber = '';
   }
 
-  // SMS operations - delegate to facade
+  fromNumberSelections(vm: { selectedBox?: string; selectedSlot?: string; phoneNumbers?: string[] } | null): { key: string; phoneNumbers: string[] }[] {
+    if (!vm?.selectedBox || !vm?.selectedSlot) {
+      return [];
+    }
+
+    return [{
+      key: `${vm.selectedBox}:${vm.selectedSlot}`,
+      phoneNumbers: vm.phoneNumbers ?? []
+    }];
+  }
+
+  trackFromNumberSelection(_index: number, selection: { key: string }): string {
+    return selection.key;
+  }
+
+  canSendSms(vm: { selectedBox?: string; selectedSlot?: string } | null): boolean {
+    return !!vm?.selectedBox
+      && !!vm?.selectedSlot
+      && !!this.smsForm.phoneNumber
+      && !!this.smsForm.toNumber.trim()
+      && !!this.smsForm.message.trim();
+  }
+
   sendSMS(): void {
-    // Get selected box from current state
-    this.viewModel$.pipe(takeUntil(this.destroy$)).subscribe(vm => {
-      this.corpFacade.sendSMSDemo(this.smsForm, vm.selectedBox);
-      // Clear form using facade logic
-      this.smsForm = this.corpFacade.createClearedSMSForm(this.smsForm);
-    }).unsubscribe();
+    this.viewModel$.pipe(take(1)).subscribe(vm => {
+      this.corpFacade.sendSms(this.smsForm, vm?.selectedBox ?? '', vm?.selectedSlot ?? '');
+    });
   }
 
   exportToCSV(): void {
@@ -187,9 +229,7 @@ export class corpDemoDialogComponent implements OnInit, OnDestroy {
   }
 
   createWebhook(): void {
-    this.corpFacade.createWebhookDemo(this.webhookForm);
-    // Reset form using facade logic
-    this.webhookForm = this.corpFacade.getDefaultWebhookForm();
+    this.corpFacade.createWebhook(this.webhookForm);
   }
 
   closeWebhookSuccessModal(): void {

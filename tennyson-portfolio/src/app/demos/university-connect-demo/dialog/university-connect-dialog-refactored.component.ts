@@ -1,323 +1,60 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatCardModule } from '@angular/material/card';
-import { MatMenuModule } from '@angular/material/menu';
+import { UniversityConnectHomeComponent } from '../home/university-connect-home.component';
+import { UniversityConnectAboutComponent } from '../about/university-connect-about.component';
+import { ResourceListingComponent } from '../resource-listing/resource-listing.component';
+import { ResourceUploadComponent } from '../resource-upload/resource-upload.component';
+import { ResourceDetailComponent } from '../resource-detail/resource-detail.component';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
-import { DemoView, ResourceForm } from '../store/university-connect.state';
-import { readResourceImages } from '../utils/read-resource-images';
-import { WEEK_DAYS } from '../../../types/resource.types';
-import { Subject } from 'rxjs';
-
-const REMEMBERED_USERNAME_KEY = 'university-connect-demo-username';
+import { UniversityConnectNavService } from '../services/university-connect-nav.service';
 
 @Component({
   selector: 'app-university-connect-dialog-refactored',
   templateUrl: './university-connect-dialog.component.html',
-  styleUrls: ['./university-connect-dialog.component.scss'],
+  styleUrls: ['./university-connect-dialog-shell.scss'],
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatTabsModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatCardModule,
-    MatMenuModule
+    UniversityConnectHomeComponent,
+    UniversityConnectAboutComponent,
+    ResourceListingComponent,
+    ResourceUploadComponent,
+    ResourceDetailComponent
   ]
 })
-export class UniversityConnectDialogRefactoredComponent implements OnInit, OnDestroy {
-  DemoView = DemoView;
-  private destroy$ = new Subject<void>();
-  
-  // Simple UI state only - no business logic
-  readonly weekDays = WEEK_DAYS;
-  readonly categories = [
-    { value: '', display: 'All Categories' },
-    { value: 'space', display: 'Space' },
-    { value: 'equipment', display: 'Equipment' },
-    { value: 'lab', display: 'Lab' },
-    { value: 'service', display: 'Service' },
-    { value: 'software', display: 'Software' },
-    { value: 'academic', display: 'Academic' }
-  ];
-  username: string = '';
-  rememberMe: boolean = false;
-  currentTag: string = '';
-  searchTerm: string = '';
-
-  // Delegate all observables to facade (no local state)
-  get currentView() { return this.facade.currentView$; }
-  get currentUploadStep() { return this.facade.currentUploadStep$; }
-  get userResources() { return this.facade.userResources$; }
-  get isLoadingUserResources() { return this.facade.isLoadingUserResources$; }
-  get showPaymentOverlay() { return this.facade.showPaymentOverlay$; }
-  get selectedResource() { return this.facade.selectedResource$; }
-  get showDeleteConfirmModal() { return this.facade.showDeleteConfirmModal$; }
-  get deleteResourceData() { return this.facade.deleteResourceData$; }
-  get showSuccessModal() { return this.facade.showSuccessModal$; }
-  get successMessage() { return this.facade.successMessage$; }
-  get imagePreviewUrls() { return this.facade.imagePreviewUrls$; }
-  get tags() { return this.facade.tags$; }
-  get currentUser() { return this.facade.currentUser$; }
-  get isLoading() { return this.facade.isLoading$; }
-  get isSubmitting() { return this.facade.isSubmitting$; }
-  get isLoadingResources() { return this.facade.isLoadingResources$; }
-  get allResources() { return this.facade.allResources$; }
-  get filteredResources() { return this.facade.filteredResources$; }
-  get hasActiveFilters() { return this.facade.hasActiveFilters$; }
-  get isFullscreen() { return this.facade.isFullscreen$; }
-  
-  // State from facade (no local management)
-  get filterForm() { return this.facade.filterForm$; }
-  get resourceForm() { return this.facade.resourceForm$; }
+export class UniversityConnectDialogRefactoredComponent implements OnInit {
+  fullscreen = false;
 
   constructor(
     public dialogRef: MatDialogRef<UniversityConnectDialogRefactoredComponent>,
-    public facade: UniversityConnectFacade
+    public nav: UniversityConnectNavService,
+    private facade: UniversityConnectFacade
   ) {}
 
   ngOnInit(): void {
-    const rememberedUsername = localStorage.getItem(REMEMBERED_USERNAME_KEY);
-    if (rememberedUsername) {
-      this.username = rememberedUsername;
-      this.rememberMe = true;
-    }
-
-    // Just load resources - no complex subscriptions
+    this.nav.goHome();
+    this.facade.clearFilters();
     this.facade.loadAllResources();
-    
-    // DEBUG: Track view changes
-    this.currentView.subscribe(view => {
-      console.log('🎭 University Connect Demo - Current View:', DemoView[view]);
-    });
-    
-    // DEBUG: Track user login state
-    this.currentUser.subscribe(user => {
-      console.log('🎭 University Connect Demo - Current User:', user);
-    });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  // UI Event Handlers (delegate everything to facade)
   closeDialog(): void {
     this.dialogRef.close();
   }
 
-  // Authentication Actions (delegate to facade)
-  login(username: string): void {
-    const trimmedUsername = username.trim();
-    if (!trimmedUsername) {
+  toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
+    if (this.fullscreen) {
+      this.dialogRef.addPanelClass('university-connect-dialog-fullscreen');
+      this.dialogRef.updateSize('100vw', '100vh');
       return;
     }
-
-    if (this.rememberMe) {
-      localStorage.setItem(REMEMBERED_USERNAME_KEY, trimmedUsername);
-    } else {
-      localStorage.removeItem(REMEMBERED_USERNAME_KEY);
-    }
-
-    this.facade.handleLogin(trimmedUsername);
-  }
-
-  logout(): void {
-    this.facade.logout();
-  }
-
-  // Upload Actions (delegate to facade)
-  nextUploadStep(): void {
-    // Auto-save any uncommitted tag before proceeding
-    if (this.currentTag.trim()) {
-      this.facade.addTag(this.currentTag.trim());
-      this.currentTag = '';
-    }
-    
-    // Simple validation without nested subscriptions
-    this.facade.nextUploadStep();
-  }
-
-  prevUploadStep(): void {
-    this.facade.prevUploadStep();
-  }
-
-  addTag(): void {
-    if (this.currentTag.trim()) {
-      this.facade.addTag(this.currentTag.trim());
-      this.currentTag = ''; // Clear the input after adding
-    }
-  }
-
-  removeTag(index: number): void {
-    this.facade.removeTag(index);
-  }
-
-  handleFileSelection(event: Event): void {
-    const files = (event.target as HTMLInputElement | null)?.files;
-    if (files) {
-      this.storeSelectedImages(files);
-    }
-  }
-
-  handleImageDrop(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer?.files) {
-      this.storeSelectedImages(event.dataTransfer.files);
-    }
-  }
-
-  private storeSelectedImages(files: FileList): void {
-    readResourceImages(files, (file, previewUrl) => {
-      this.facade.addImage(previewUrl);
-      this.facade.uploadImage(file);
-    });
-  }
-
-  handleDragOver(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  handleDragLeave(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  removeImage(index: number): void {
-    this.facade.removeImage(index);
-  }
-
-  triggerFileInput(): void {
-    const fileInput = document.getElementById('imageFileInput') as HTMLInputElement;
-    fileInput?.click();
-  }
-
-  // Payment Actions (delegate to facade)
-  bookResource(resource: any): void {
-    this.facade.showPaymentOverlay(resource);
-  }
-
-  closePaymentOverlay(): void {
-    this.facade.hidePaymentOverlay();
-  }
-
-  submitPayment(): void {
-    this.facade.hidePaymentOverlay();
-    this.facade.showSuccessModal('🎭 Booking confirmed! (Demo)');
-  }
-
-  handlePaymentSubmit(): void {
-    this.facade.hidePaymentOverlay();
-    this.facade.showSuccessModal('🎭 Booking confirmed! (Demo)');
-  }
-
-  // Resource Management (delegate to facade)
-  toggleFullscreen(): void {
-    this.facade.toggleFullscreen();
-  }
-  
-  // Navigation Methods (delegate to facade)
-  goToHome(): void {
-    this.facade.goToHome();
-  }
-  
-  goToBrowse(): void {
-    this.facade.goToBrowse();
-  }
-  
-  goToUpload(): void {
-    this.facade.goToUpload();
-  }
-  
-  goToMyResources(): void {
-    this.facade.goToMyResources();
-  }
-  
-  // Tag Management (local UI state only)
-  onTagKeyPress(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      this.addTag();
-    }
-  }
-
-  // Resource Deletion (delegate to facade)
-  deleteResource(resourceId: string, resourceName: string): void {
-    this.facade.showDeleteConfirmModal(resourceId, resourceName);
-  }
-
-  viewBookings(resourceId: string, resourceName: string): void {
-    this.goToBrowse();
-  }
-
-  cancelDelete(): void {
-    this.facade.hideDeleteConfirmModal();
-  }
-
-  confirmDelete(): void {
-    this.deleteResourceData.subscribe(deleteData => {
-      if (deleteData) {
-        this.facade.deleteResource(deleteData.id);
-      }
-    }).unsubscribe();
-  }
-
-  closeSuccessModal(): void {
-    this.facade.hideSuccessModal();
-  }
-
-  // Form Actions (delegate to facade - no local form management)
-  publishResource(): void {
-    // Validate tags before publishing
-    this.tags.subscribe(tags => {
-      if (!tags || tags.length === 0) {
-        this.facade.showSuccessModal('🎭 At least one tag is required to publish a resource. (Demo)');
-        return;
-      }
-      
-      // Proceed with publishing if validation passes
-      this.facade.publishResourceFromForm();
-    }).unsubscribe();
-  }
-
-  // Filter Actions (delegate to facade - no local filter management)
-  onFilterChange(field: string, value: string): void {
-    this.facade.updateFilterForm(field, value);
-  }
-
-  clearFilters(): void {
-    this.facade.resetFilterForm();
-  }
-
-  // Form field update helpers (delegate to facade)
-  updateResourceFormField(field: string, value: string): void {
-    this.facade.updateResourceForm(field, value);
-  }
-
-  hasAvailability(form: ResourceForm | null): boolean {
-    return !!form && this.weekDays.some(day => !!form.availability[day.key]?.start);
-  }
-
-  // Search functionality (delegate to facade)
-  performSearch(): void {
-    this.facade.searchResources(this.searchTerm);
-    this.searchTerm = ''; // Clear search input after search
-  }
-
-  onSearchKeyPress(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      this.performSearch();
-    }
+    this.dialogRef.removePanelClass('university-connect-dialog-fullscreen');
+    this.dialogRef.updateSize('95vw', '90vh');
   }
 }

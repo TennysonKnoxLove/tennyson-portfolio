@@ -37,10 +37,5 @@ export const portfolioReducer = createReducer(
     ...state,
     // isLoadingStaticData: false,
     // staticDataError: error,
-  })),
-  // Handle setting current project ID
-  on(PortfolioActions.setCurrentProjectId, (state, { projectId }) => ({
-    ...state,
-    currentProjectId: projectId,
   }))
 ); 

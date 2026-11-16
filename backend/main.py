@@ -3,25 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from controller import router
-from repository import prisma
-import os
+from repository import UPLOAD_DIR, prisma
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Centralize environment configuration by loading from the .env file in the prisma directory.
-# This ensures both the Prisma CLI and the Python application use the same database URL.
-env_path = Path(__file__).parent.parent / 'prisma' / '.env'
+# Secrets live only in the repo-root .env. Existing process env (Docker) wins.
+env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Connect to Prisma when the application starts
     print("Connecting to Prisma...")
-    
-    # DEBUG: Let's see what DATABASE_URL is actually being used
-    actual_database_url = os.getenv("DATABASE_URL")
-    print(f"DEBUG: DATABASE_URL environment variable = '{actual_database_url}'")
-    
     await prisma.connect()
     print("Prisma connected.")
     yield
@@ -46,4 +39,5 @@ app.add_middleware(
 app.include_router(router)
 
 # Mount static files for uploaded images
-app.mount("/uploaded-images", StaticFiles(directory="uploaded-images"), name="uploaded-images") 
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploaded-images", StaticFiles(directory=str(UPLOAD_DIR)), name="uploaded-images") 

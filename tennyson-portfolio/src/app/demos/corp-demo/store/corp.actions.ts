@@ -1,8 +1,7 @@
 import { createAction, props } from '@ngrx/store';
-import { corpView, MessageLog } from '../types/corp-demo.types';
+import { corpView, MessageLog, BoxConfig, WebhookRecord, SmsReceipt } from '../types/corp-demo.types';
 import { SMSForm, WebhookForm } from './corp.state';
 
-// View Actions
 export const switchView = createAction(
   '[corp] Switch View',
   props<{ view: corpView }>()
@@ -12,7 +11,6 @@ export const toggleFullscreen = createAction(
   '[corp] Toggle Fullscreen'
 );
 
-// Selection Actions
 export const setSelectedBox = createAction(
   '[corp] Set Selected Box',
   props<{ boxId: string }>()
@@ -23,23 +21,47 @@ export const setSelectedSlot = createAction(
   props<{ slotId: string }>()
 );
 
-// SMS Actions (Demo)
-export const sendSMSDemo = createAction(
-  '[corp] Send SMS Demo',
-  props<{ smsForm: SMSForm }>()
+export const loadBoxes = createAction('[corp] Load Boxes');
+
+export const loadBoxesSuccess = createAction(
+  '[corp] Load Boxes Success',
+  props<{ boxes: BoxConfig[] }>()
 );
 
-export const sendSMSDemoSuccess = createAction(
-  '[corp] Send SMS Demo Success',
-  props<{ messageLog: MessageLog }>()
-);
-
-export const sendSMSDemoFailure = createAction(
-  '[corp] Send SMS Demo Failure',
+export const loadBoxesFailure = createAction(
+  '[corp] Load Boxes Failure',
   props<{ error: string }>()
 );
 
-// Filter Actions
+export const loadMessageLogs = createAction('[corp] Load Message Logs');
+
+export const loadMessageLogsSuccess = createAction(
+  '[corp] Load Message Logs Success',
+  props<{ messageLogs: MessageLog[] }>()
+);
+
+export const loadMessageLogsFailure = createAction(
+  '[corp] Load Message Logs Failure',
+  props<{ error: string }>()
+);
+
+export const sendSms = createAction(
+  '[corp] Send SMS',
+  props<{ smsForm: SMSForm; boxId: string; slotId: string }>()
+);
+
+export const sendSmsSuccess = createAction(
+  '[corp] Send SMS Success',
+  props<{ messageLog: MessageLog; receipt: SmsReceipt }>()
+);
+
+export const sendSmsFailure = createAction(
+  '[corp] Send SMS Failure',
+  props<{ error: string }>()
+);
+
+export const clearSmsReceipt = createAction('[corp] Clear SMS Receipt');
+
 export const setDateFilter = createAction(
   '[corp] Set Date Filter',
   props<{ startDate: string; endDate: string }>()
@@ -50,27 +72,34 @@ export const setNumberFilters = createAction(
   props<{ fromNumber: string; toNumber: string }>()
 );
 
-// Webhook Actions (Demo)
-export const openWebhookModal = createAction(
-  '[corp] Open Webhook Modal'
+export const openWebhookModal = createAction('[corp] Open Webhook Modal');
+
+export const closeWebhookModal = createAction('[corp] Close Webhook Modal');
+
+export const loadWebhooks = createAction('[corp] Load Webhooks');
+
+export const loadWebhooksSuccess = createAction(
+  '[corp] Load Webhooks Success',
+  props<{ webhooks: WebhookRecord[] }>()
 );
 
-export const closeWebhookModal = createAction(
-  '[corp] Close Webhook Modal'
+export const loadWebhooksFailure = createAction(
+  '[corp] Load Webhooks Failure',
+  props<{ error: string }>()
 );
 
-export const createWebhookDemo = createAction(
-  '[corp] Create Webhook Demo',
+export const createWebhook = createAction(
+  '[corp] Create Webhook',
   props<{ webhookForm: WebhookForm }>()
 );
 
-export const createWebhookDemoSuccess = createAction(
-  '[corp] Create Webhook Demo Success',
-  props<{ successMessage: string }>()
+export const createWebhookSuccess = createAction(
+  '[corp] Create Webhook Success',
+  props<{ webhook: WebhookRecord }>()
 );
 
-export const createWebhookDemoFailure = createAction(
-  '[corp] Create Webhook Demo Failure',
+export const createWebhookFailure = createAction(
+  '[corp] Create Webhook Failure',
   props<{ error: string }>()
 );
 
@@ -78,11 +107,6 @@ export const closeWebhookSuccessModal = createAction(
   '[corp] Close Webhook Success Modal'
 );
 
-// Reset Actions
-export const resetcorpState = createAction(
-  '[corp] Reset State'
-);
+export const resetcorpState = createAction('[corp] Reset State');
 
-export const clearError = createAction(
-  '[corp] Clear Error'
-); 
+export const clearError = createAction('[corp] Clear Error');

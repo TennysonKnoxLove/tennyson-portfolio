@@ -27,9 +27,3 @@ export const loadLandingPageStaticDataFailure = createAction(
   '[Landing Page] Load Static Data Failure',
   props<{ error: any }>()
 );
-
-// Action for setting the current project ID for detail view
-export const setCurrentProjectId = createAction(
-  '[Portfolio Page] Set Current Project ID',
-  props<{ projectId: string | null }>()
-); 

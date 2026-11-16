@@ -1,9 +1,9 @@
 <div class="resource-upload-container">
   <div class="upload-header">
     <h1>Upload a Resource</h1>
-    <a routerLink="/projects/university-connect" class="back-link">
+    <button type="button" class="back-link" (click)="goHome()">
       <mat-icon>arrow_back</mat-icon> Back to University Connect
-    </a>
+    </button>
   </div>
 
   <mat-stepper linear #stepper>
@@ -51,17 +51,16 @@
             <h3>Tags *</h3>
             <p>Add tags to help users find your resource (required - at least one tag)</p>
             
+            <p class="field-label">Add Tag</p>
             <div class="tag-input">
-              <div class="form-group">
-                <p class="field-label">Add Tag</p>
-                <mat-form-field appearance="outline" class="tag-field">
-                  <input matInput #tagInput placeholder="Enter a tag and press Enter" 
-                         (keydown.enter)="$event.preventDefault(); addTag(tagInput.value); tagInput.value = ''">
-                </mat-form-field>
-              </div>
-              <button mat-mini-fab color="primary" (click)="addTag(tagInput.value); tagInput.value = ''">
+              <mat-form-field appearance="outline" class="tag-field" subscriptSizing="dynamic">
+                <input matInput #tagInput placeholder="Enter a tag and press Enter" 
+                       (keydown.enter)="$event.preventDefault(); addTag(tagInput.value); tagInput.value = ''">
+              </mat-form-field>
+              <button mat-mini-fab color="primary" type="button" (click)="addTag(tagInput.value); tagInput.value = ''">
                 <mat-icon>add</mat-icon>
               </button>
+              <button mat-button class="tag-row-next" type="button" matStepperNext [disabled]="!basicInfoForm.valid || selectedTags.length === 0">Next</button>
             </div>
             
             <div class="tags-list" *ngIf="selectedTags.length">
@@ -80,10 +79,6 @@
               <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">error</mat-icon>
               At least one tag is required
             </div>
-          </div>
-          
-          <div class="step-buttons">
-            <button mat-button matStepperNext [disabled]="!basicInfoForm.valid || selectedTags.length === 0">Next</button>
           </div>
         </div>
       </form>
@@ -106,10 +101,11 @@
               <input type="file" #fileInput (change)="onImageSelected($event)" accept="image/*" class="file-input">
             </div>
             
-            <button mat-stroked-button (click)="fileInput.click()">
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
               <mat-icon>add_photo_alternate</mat-icon> 
               {{ uploadedImage ? 'Change Image' : 'Upload Image' }}
             </button>
+            <p class="image-error" *ngIf="imageError">{{ imageError }}</p>
           </div>
           
           <div class="step-buttons">
@@ -129,11 +125,11 @@
           
           <div class="form-group">
             <p class="field-label">Price ($ per hour)</p>
-            <mat-form-field appearance="outline">
-              <input matInput formControlName="price" type="number" min="0" step="0.01" placeholder="Enter price">
-              <span matSuffix>USD</span>
+            <mat-form-field appearance="outline" class="price-field" subscriptSizing="dynamic">
+              <input matInput formControlName="price" type="text" inputmode="decimal" autocomplete="off" placeholder="Enter price">
+              <span matSuffix class="price-suffix">USD</span>
               <mat-error *ngIf="pricingForm.get('price')?.hasError('required')">Price is required</mat-error>
-              <mat-error *ngIf="pricingForm.get('price')?.hasError('min')">Price cannot be negative</mat-error>
+              <mat-error *ngIf="pricingForm.get('price')?.hasError('pattern')">Enter a price using numbers only</mat-error>
             </mat-form-field>
           </div>
           
@@ -172,15 +168,8 @@
             <div class="form-group">
               <p class="field-label special-state">State</p>
               <mat-form-field appearance="outline">
-                <mat-select formControlName="state">
-                  <mat-option value="AL">Alabama</mat-option>
-                  <mat-option value="AK">Alaska</mat-option>
-                  <mat-option value="AZ">Arizona</mat-option>
-                  <mat-option value="CA">California</mat-option>
-                  <mat-option value="CO">Colorado</mat-option>
-                  <mat-option value="NY">New York</mat-option>
-                  <mat-option value="TX">Texas</mat-option>
-                  <!-- Add more states as needed -->
+                <mat-select formControlName="state" panelClass="uc-state-select-panel">
+                  <mat-option *ngFor="let state of states" [value]="state.value">{{ state.label }}</mat-option>
                 </mat-select>
                 <mat-error *ngIf="locationForm.get('state')?.hasError('required')">State is required</mat-error>
               </mat-form-field>
@@ -247,7 +236,10 @@
             <div class="review-section">
               <h3>Basic Information</h3>
               <p><strong>Name:</strong> {{ basicInfoForm.get('name')?.value }}</p>
-              <p><strong>Description:</strong> {{ basicInfoForm.get('description')?.value }}</p>
+              <div class="review-description">
+                <p class="review-label"><strong>Description</strong></p>
+                <p class="review-copy">{{ basicInfoForm.get('description')?.value }}</p>
+              </div>
               <p><strong>Category:</strong> {{ basicInfoForm.get('category')?.value }}</p>
               <p><strong>Tags:</strong> {{ selectedTags.join(', ') || 'None' }}</p>
             </div>
@@ -279,12 +271,14 @@
           </mat-card-content>
         </mat-card>
         
+        <p class="image-error" *ngIf="publishError">{{ publishError }}</p>
         <div class="step-buttons publish-buttons">
-          <button mat-button matStepperPrevious>Back</button>
-          <button 
-            mat-raised-button 
-            color="primary" 
-            (click)="submitResource()" 
+          <button mat-button matStepperPrevious type="button">Back</button>
+          <button
+            type="button"
+            mat-raised-button
+            color="primary"
+            (click)="submitResource()"
             [disabled]="(facade.isSubmitting$ | async) || !basicInfoForm.valid || !pricingForm.valid || !locationForm.valid">
             {{ (facade.isSubmitting$ | async) ? 'Publishing...' : 'Publish Resource' }}
           </button>

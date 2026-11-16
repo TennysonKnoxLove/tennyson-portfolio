@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { UniversityConnectFacade } from '../store/university-connect.facade';
+import { UniversityConnectNavService } from '../services/university-connect-nav.service';
+import { Resource } from '../../../types/resource.types';
 
 @Component({
   selector: 'app-university-connect-home',
@@ -26,19 +28,38 @@ import { UniversityConnectFacade } from '../store/university-connect.facade';
 export class UniversityConnectHomeComponent implements OnInit {
   searchControl = new FormControl('');
   
-  constructor(public facade: UniversityConnectFacade) {}
+  constructor(
+    public facade: UniversityConnectFacade,
+    private nav: UniversityConnectNavService
+  ) {}
   
   ngOnInit(): void {
-    // Load resources when component initializes
     this.facade.loadAllResources();
   }
   
   onSearch(): void {
-    const searchTerm = this.searchControl.value;
+    const searchTerm = this.searchControl.value?.trim();
     if (searchTerm) {
       this.facade.applyFilters({ description: searchTerm });
     } else {
       this.facade.clearFilters();
     }
+    this.nav.goBrowse();
+  }
+
+  goBrowse(): void {
+    this.nav.goBrowse();
+  }
+
+  goAbout(): void {
+    this.nav.goAbout();
+  }
+
+  goUpload(): void {
+    this.nav.goUpload();
+  }
+
+  openDetails(resource: Resource): void {
+    this.nav.openDetails(resource);
   }
 } 

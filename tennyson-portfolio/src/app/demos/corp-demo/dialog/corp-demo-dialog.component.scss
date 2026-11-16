@@ -129,7 +129,7 @@
   }
 }
 
-.box-select, .slot-select {
+.box-select, .slot-select, .phone-select {
   width: 100%;
   font-size: 14px;
   
@@ -322,6 +322,11 @@
       min-height: 80px;
     }
     
+    .phone-select {
+      display: block;
+      width: 100%;
+    }
+
     .help-text {
       color: #6b7280;
       font-size: 12px;
@@ -504,6 +509,19 @@
   }
 }
 
+.log-context {
+  margin: 0 0 12px 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.empty-logs {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
 /* Information View */
 .information-container {
   background: white;
@@ -596,8 +614,40 @@
           margin: 0;
           font-size: 14px;
         }
+
+        .webhook-entry {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: 8px;
+          padding: 10px 12px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+
+          .webhook-url {
+            color: #111827;
+            font-size: 14px;
+            word-break: break-all;
+          }
+
+          .webhook-meta {
+            color: #6b7280;
+            font-size: 12px;
+          }
+        }
       }
     }
+  }
+
+  .webhooks-error {
+    margin: 0 0 16px 0;
+    padding: 12px 16px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    color: #92400e;
+    font-size: 14px;
   }
 }
 
@@ -853,6 +903,14 @@
 
 .success-modal-content {
   padding: 0 24px 24px;
+
+  .saved-note {
+    margin: 0 0 16px 0;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+  }
   
   .webhook-details {
     background: #f9fafb;

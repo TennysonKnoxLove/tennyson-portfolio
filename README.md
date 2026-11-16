@@ -16,11 +16,11 @@ From the repository root:
 docker compose up --build
 ```
 
-| Service | URL |
-| --- | --- |
-| Site | http://localhost:8080 |
-| API | http://localhost:8000 |
-| Postgres | localhost:5432 (`postgres` / `postgres`, database `portfolio`) |
+| Service  | URL                                                            |
+| -------- | -------------------------------------------------------------- |
+| Site     | http://localhost:8080                                          |
+| API      | http://localhost:8000                                          |
+| Postgres | localhost:5432 (user, password, and database name are in `.env`) |
 
 The site image is a production build. Its API address comes from `tennyson-portfolio/src/environments/environment.prod.ts`.
 
@@ -42,10 +42,10 @@ Start only Postgres:
 docker compose up db
 ```
 
-Create `prisma/.env`:
+Copy the example environment file and fill in the values:
 
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/portfolio
+cp .env.example .env
 ```
 
 Generate the Prisma client and create the tables:
@@ -55,7 +55,7 @@ npx prisma@5.17.0 generate --schema=prisma/schema.prisma
 npx prisma@5.17.0 db push --schema=prisma/schema.prisma
 ```
 
-The API reads `DATABASE_URL` from `prisma/.env`.
+The API and Prisma read `DATABASE_URL` from the repo-root `.env`. EmailJS credentials in that file are used only by the API.
 
 ### API
 

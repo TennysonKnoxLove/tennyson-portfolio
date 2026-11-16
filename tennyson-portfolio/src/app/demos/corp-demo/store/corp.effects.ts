@@ -1,76 +1,108 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { map, delay } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
 import * as corpActions from './corp.actions';
-import { MessageLog } from '../types/corp-demo.types';
+import { CorpDataService } from '../service/corp-data.service';
+
+function apiError(error: unknown, fallback: string): string {
+  if (error instanceof HttpErrorResponse) {
+    const detail = error.error?.detail;
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+  }
+  return fallback;
+}
 
 @Injectable()
 export class corpEffects {
   private actions$ = inject(Actions);
+  private corpData = inject(CorpDataService);
 
-  // SMS Demo Effect - Simulates sending SMS
-  sendSMSDemo$ = createEffect(() =>
+  loadBoxes$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(corpActions.sendSMSDemo),
-      delay(1000), // Simulate network delay
-      map(({ smsForm }) => {
-        // Validate form (demo validation)
-        if (!smsForm.toNumber.trim()) {
-          return corpActions.sendSMSDemoFailure({ 
-            error: '📱 Demo: Please enter a recipient phone number' 
-          });
-        }
-        
-        if (!smsForm.message.trim()) {
-          return corpActions.sendSMSDemoFailure({ 
-            error: '📱 Demo: Please enter a message' 
-          });
-        }
-
-        // Create demo message log entry
-        const newMessage: MessageLog = {
-          timestamp: new Date().toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            second: '2-digit'
-          }),
-          from: smsForm.phoneNumber || '(555) 123-4567',
-          to: smsForm.toNumber,
-          modemId: 'modem.01',
-          message: `📱 DEMO: ${smsForm.message}`
-        };
-
-        return corpActions.sendSMSDemoSuccess({ messageLog: newMessage });
-      })
+      ofType(corpActions.loadBoxes),
+      switchMap(() =>
+        this.corpData.getBoxes().pipe(
+          map(boxes => corpActions.loadBoxesSuccess({ boxes })),
+          catchError(error => of(corpActions.loadBoxesFailure({
+            error: apiError(error, 'Could not load boxes.')
+          })))
+        )
+      )
     )
   );
 
-  // Webhook Demo Effect - Simulates creating webhook
-  createWebhookDemo$ = createEffect(() =>
+  loadMessageLogs$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(corpActions.createWebhookDemo),
-      delay(800), // Simulate network delay
-      map(({ webhookForm }) => {
-        // Validate webhook form (demo validation)
+      ofType(corpActions.loadMessageLogs),
+      switchMap(() =>
+        this.corpData.getMessageLogs().pipe(
+          map(messageLogs => corpActions.loadMessageLogsSuccess({ messageLogs })),
+          catchError(error => of(corpActions.loadMessageLogsFailure({
+            error: apiError(error, 'Could not load message logs.')
+          })))
+        )
+      )
+    )
+  );
+
+  loadWebhooks$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(corpActions.loadWebhooks),
+      switchMap(() =>
+        this.corpData.getWebhooks().pipe(
+          map(webhooks => corpActions.loadWebhooksSuccess({ webhooks })),
+          catchError(error => of(corpActions.loadWebhooksFailure({
+            error: apiError(error, 'Could not load webhooks. Check that the API and database are running.')
+          })))
+        )
+      )
+    )
+  );
+
+  sendSms$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(corpActions.sendSms),
+      switchMap(({ smsForm, boxId, slotId }) =>
+        this.corpData.sendSms({
+          fromNumber: smsForm.phoneNumber,
+          toNumber: smsForm.toNumber,
+          message: smsForm.message,
+          boxId,
+          slotId
+        }).pipe(
+          map(response => corpActions.sendSmsSuccess({
+            messageLog: response.messageLog,
+            receipt: response.receipt
+          })),
+          catchError(error => of(corpActions.sendSmsFailure({
+            error: apiError(error, 'Could not prepare the demo SMS.')
+          })))
+        )
+      )
+    )
+  );
+
+  createWebhook$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(corpActions.createWebhook),
+      switchMap(({ webhookForm }) => {
         if (!webhookForm.url.trim()) {
-          return corpActions.createWebhookDemoFailure({ 
-            error: '🔗 Demo: Please enter a webhook URL' 
-          });
+          return of(corpActions.createWebhookFailure({
+            error: 'Enter a webhook URL.'
+          }));
         }
 
-        const successMessage = `🔗 Demo Webhook Created Successfully!
-URL: ${webhookForm.url}
-Level: ${webhookForm.level}
-Type: ${webhookForm.type}
-Format: ${webhookForm.format}
-
-Note: This is a UI demo - no actual webhook was created.`;
-
-        return corpActions.createWebhookDemoSuccess({ successMessage });
+        return this.corpData.createWebhook(webhookForm).pipe(
+          map(webhook => corpActions.createWebhookSuccess({ webhook })),
+          catchError(error => of(corpActions.createWebhookFailure({
+            error: apiError(error, 'Could not save the webhook.')
+          })))
+        );
       })
     )
   );
-} 
+}

@@ -105,8 +105,6 @@ export const CaliforniaReducer = createReducer(
 
   on(CaliforniaActions.checkDockerStatusSuccess, (state, { response }) => ({
     ...state,
-    dockerContainers: response.containers,
-    dockerRunning: response.containers.some(c => c.status === 'running'),
     terminalOutput: [
       ...state.terminalOutput,
       '📊 Checking container status...',
@@ -151,10 +149,12 @@ export const CaliforniaReducer = createReducer(
       ...state.terminalOutput,
       'Available commands:',
       '  docker-compose up    - Start all containers',
-      '  docker-compose down  - Stop all containers',
-      '  docker ps           - Show container status',
-      '  clear               - Clear terminal',
-      '  help                - Show this help',
+      '  docker compose up    - Same as docker-compose up',
+      '  docker-compose down  - Stop containers that are running',
+      '  docker compose down  - Same as docker-compose down',
+      '  docker ps            - Show container status',
+      '  clear                - Clear terminal',
+      '  help                 - Show this help',
       ''
     ]
   })),

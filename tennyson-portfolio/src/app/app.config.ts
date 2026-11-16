@@ -8,8 +8,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { resourceReducer } from './store/resource/resource.reducer';
-import { ResourceEffects } from './store/resource/resource.effects';
 import { portfolioReducer } from './store/portfolio/portfolio.reducer';
 import { PortfolioEffects } from './store/portfolio/portfolio.effects';
 import { universityConnectReducer } from './demos/university-connect-demo/store/university-connect.reducer';
@@ -30,13 +28,12 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideClientHydration(withEventReplay()),
     provideStore({
-      resource: resourceReducer,
       portfolio: portfolioReducer,
       universityConnect: universityConnectReducer,
       corp: corpReducer,
       california: CaliforniaReducer
     }),
-    provideEffects(ResourceEffects, PortfolioEffects, UniversityConnectEffects, corpEffects, CaliforniaEffects),
+    provideEffects(PortfolioEffects, UniversityConnectEffects, corpEffects, CaliforniaEffects),
     provideStoreDevtools({ maxAge: 25, logOnly: false }),
     provideAnimations(),
     importProvidersFrom(UniversityConnectModule, corpDemoModule, CaliforniaDemoModule, MatSnackBarModule)

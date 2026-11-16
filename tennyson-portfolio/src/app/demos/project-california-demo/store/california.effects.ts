@@ -1,26 +1,47 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { map, delay, catchError, switchMap, tap } from 'rxjs/operators';
+import { map, delay, catchError, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import * as CaliforniaActions from './california.actions';
 import { CaliforniaDataService } from '../services/california-data.service';
-import { DockerResponse } from '../types/california-demo.types';
+import { DockerContainer, DockerResponse } from '../types/california-demo.types';
+import { selectDockerContainers, selectDockerRunning } from './california.selectors';
+
+const COMPOSE_UP_COMMANDS = new Set([
+  'docker-compose up',
+  'docker-compose up -d',
+  'docker compose up',
+  'docker compose up -d'
+]);
+
+const COMPOSE_DOWN_COMMANDS = new Set([
+  'docker-compose down',
+  'docker compose down'
+]);
 
 @Injectable()
 export class CaliforniaEffects {
   private actions$ = inject(Actions);
+  private store = inject(Store);
   private CaliforniaDataService = inject(CaliforniaDataService);
 
   // Command execution effect - routes commands to appropriate actions
   executeCommand$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CaliforniaActions.executeCommand),
-      map(({ command }) => {
-        const trimmedCommand = command.trim();
-        
-        if (trimmedCommand === 'docker-compose up' || trimmedCommand === 'docker-compose up -d') {
+      withLatestFrom(this.store.select(selectDockerRunning)),
+      map(([{ command }, dockerRunning]) => {
+        const trimmedCommand = command.trim().replace(/\s+/g, ' ');
+
+        if (COMPOSE_UP_COMMANDS.has(trimmedCommand)) {
           return CaliforniaActions.startDockerDemo();
-        } else if (trimmedCommand === 'docker-compose down') {
+        } else if (COMPOSE_DOWN_COMMANDS.has(trimmedCommand)) {
+          if (!dockerRunning) {
+            return CaliforniaActions.addTerminalOutput({
+              output: 'No containers are running. Nothing to stop.'
+            });
+          }
           return CaliforniaActions.stopDockerDemo();
         } else if (trimmedCommand === 'docker ps') {
           return CaliforniaActions.checkDockerStatus();
@@ -29,8 +50,8 @@ export class CaliforniaEffects {
         } else if (trimmedCommand === 'help') {
           return CaliforniaActions.showDockerHelp();
         } else if (trimmedCommand !== '') {
-          return CaliforniaActions.addTerminalOutput({ 
-            output: `Command '${trimmedCommand}' not recognized. Type 'help' for available commands.` 
+          return CaliforniaActions.addTerminalOutput({
+            output: `Command '${trimmedCommand}' not recognized. Type 'help' for available commands.`
           });
         } else {
           return { type: 'NO_ACTION' }; // No-op for empty commands
@@ -91,29 +112,21 @@ export class CaliforniaEffects {
     )
   );
 
-  // Docker status check effect
+  // Docker status check effect — read-only. Reports the containers already in state.
   checkDockerStatus$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CaliforniaActions.checkDockerStatus),
-      delay(200), // Simulate network delay
-      switchMap(() =>
-        this.CaliforniaDataService.getContainerStatus().pipe(
-          map((response: DockerResponse) => {
-            if (response.success) {
-              return CaliforniaActions.checkDockerStatusSuccess({ response });
-            } else {
-              return CaliforniaActions.checkDockerStatusFailure({ 
-                error: response.message || 'No containers found or Docker not running.' 
-              });
-            }
-          }),
-          catchError(error => 
-            of(CaliforniaActions.checkDockerStatusFailure({ 
-              error: `🏔️ Demo Error: ${error.message}` 
-            }))
-          )
-        )
-      )
+      delay(200),
+      withLatestFrom(this.store.select(selectDockerContainers)),
+      map(([, containers]) => {
+        const response: DockerResponse = {
+          success: true,
+          message: 'Status check completed',
+          output: formatDockerPs(containers),
+          containers
+        };
+        return CaliforniaActions.checkDockerStatusSuccess({ response });
+      })
     )
   );
 
@@ -178,4 +191,39 @@ export class CaliforniaEffects {
     ),
     { dispatch: false }
   );
+}
+
+function formatDockerPs(containers: DockerContainer[]): string {
+  const rows = containers.map((container) => {
+    const image = container.name === 'california-db' ? 'postgres:13' : `${container.name}:latest`;
+    const command = container.name === 'california-web'
+      ? '"npm start"'
+      : container.name === 'california-api'
+        ? '"python app.py"'
+        : '"docker-entrypoint..."';
+    const id = container.name === 'california-web'
+      ? 'abc123def456'
+      : container.name === 'california-api'
+        ? 'def456ghi789'
+        : 'ghi789jkl012';
+
+    if (container.status === 'running') {
+      const uptime = container.uptime || 'a few seconds';
+      const ports = container.ports.map((port) => `0.0.0.0:${port}`).join(', ');
+      return `${id}   ${image}   ${command}   Up ${uptime}   ${ports}   ${container.name}`;
+    }
+
+    const statusLabel = container.status === 'starting'
+      ? 'Starting'
+      : container.status === 'error'
+        ? 'Error'
+        : 'Exited';
+    return `${id}   ${image}   ${command}   ${statusLabel}   ${container.name}`;
+  });
+
+  if (!containers.some((container) => container.status === 'running')) {
+    rows.push('No containers are running.');
+  }
+
+  return rows.join('\n');
 } 

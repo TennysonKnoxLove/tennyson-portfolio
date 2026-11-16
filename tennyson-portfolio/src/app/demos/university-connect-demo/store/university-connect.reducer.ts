@@ -77,7 +77,8 @@ export const universityConnectReducer = createReducer(
 
   on(UniversityConnectActions.addImage, (state, { previewUrl }) => ({
     ...state,
-    imagePreviewUrls: [...state.imagePreviewUrls, previewUrl]
+    imagePreviewUrls: [previewUrl],
+    error: null
   })),
 
   on(UniversityConnectActions.removeImage, (state, { index }) => ({
@@ -94,7 +95,8 @@ export const universityConnectReducer = createReducer(
 
   on(UniversityConnectActions.uploadImageSuccess, (state, { url }) => ({
     ...state,
-    uploadedImageUrls: [...state.uploadedImageUrls, url]
+    uploadedImageUrls: [url],
+    error: null
   })),
 
   on(UniversityConnectActions.uploadImageFailure, (state, { error }) => ({
@@ -140,14 +142,16 @@ export const universityConnectReducer = createReducer(
   // Real Resource Management Actions
   on(UniversityConnectActions.loadAllResources, (state) => ({
     ...state,
-    isLoadingResources: true
+    isLoadingResources: true,
+    error: null
   })),
 
   on(UniversityConnectActions.loadAllResourcesSuccess, (state, { resources }) => ({
     ...state,
     isLoadingResources: false,
     allResources: resources,
-    filteredResources: filterResources(resources, state.currentFilters)
+    filteredResources: filterResources(resources, state.currentFilters),
+    error: null
   })),
 
   on(UniversityConnectActions.loadAllResourcesFailure, (state, { error }) => ({

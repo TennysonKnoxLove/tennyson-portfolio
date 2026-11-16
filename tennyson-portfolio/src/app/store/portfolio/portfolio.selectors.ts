@@ -1,6 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { PortfolioState } from './portfolio.state';
-import { Project } from '../../types/project.types';
 import { DeveloperBio, TechStack } from '../../services/landing-page.service';
 
 // Feature selector for the portfolio state
@@ -43,21 +42,3 @@ export const selectDeveloperBio = createSelector(
   selectPortfolioState,
   (state: PortfolioState): DeveloperBio | null => state.developerBio
 );
-
-// Selector for the current project ID
-export const selectCurrentProjectId = createSelector(
-  selectPortfolioState,
-  (state: PortfolioState): string | null => state.currentProjectId
-);
-
-// Selector for the currently selected project object
-export const selectCurrentProject = createSelector(
-  selectAllProjects, // Depends on the list of all projects
-  selectCurrentProjectId, // Depends on the current ID
-  (projects: Project[], currentId: string | null): Project | null | undefined => {
-    if (!currentId || !projects || projects.length === 0) {
-      return null; // Or undefined, based on how you want to handle "not found"
-    }
-    return projects.find(project => project.id === currentId);
-  }
-); 

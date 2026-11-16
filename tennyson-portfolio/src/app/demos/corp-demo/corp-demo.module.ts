@@ -14,6 +14,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatBadgeModule } from '@angular/material/badge';
 import { corpDemoDialogComponent } from './dialog/corp-demo-dialog.component';
 import { CsvExportDialogComponent } from './dialog/csv-export-dialog.component';
+import { SmsDemoDialogComponent } from './dialog/sms-demo-dialog.component';
 import { corpDemoDialogService } from './service/corp-demo-dialog.service';
 import { corpFacadeService } from './store/corp.facade';
 
@@ -35,7 +36,8 @@ import { corpFacadeService } from './store/corp.facade';
     MatSlideToggleModule,
     MatBadgeModule,
     corpDemoDialogComponent,
-    CsvExportDialogComponent
+    CsvExportDialogComponent,
+    SmsDemoDialogComponent
   ],
   providers: [
     corpDemoDialogService,
@@ -43,7 +45,8 @@ import { corpFacadeService } from './store/corp.facade';
   ],
   exports: [
     corpDemoDialogComponent,
-    CsvExportDialogComponent
+    CsvExportDialogComponent,
+    SmsDemoDialogComponent
   ]
 })
 export class corpDemoModule { } 

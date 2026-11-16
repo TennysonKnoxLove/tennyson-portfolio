@@ -2,9 +2,14 @@ from prisma import Prisma
 from fastapi import UploadFile
 import os
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 prisma = Prisma()
+
+# Next to this file. Docker bind-mounts ./backend over the image workdir, so the
+# folder created during the image build is not present at runtime.
+UPLOAD_DIR = Path(__file__).resolve().parent / "uploaded-images"
 
 class UserRepository:
     @staticmethod
@@ -49,9 +54,8 @@ class ResourceRepository:
 
     @staticmethod
     async def upload_image(file: UploadFile):
-        # Create uploaded-images directory if it doesn't exist
-        upload_dir = Path("backend/uploaded-images")
-        upload_dir.mkdir(exist_ok=True)
+        upload_dir = UPLOAD_DIR
+        upload_dir.mkdir(parents=True, exist_ok=True)
         
         # Generate unique filename
         file_extension = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
@@ -72,7 +76,20 @@ class ResourceRepository:
 class DockerRepository:
     @staticmethod
     async def get_container_status():
-        return {"status": "All containers are running"}
+        return {
+            "success": True,
+            "message": "Status check completed",
+            "output": (
+                "california-web:latest   Up   0.0.0.0:3000->3000/tcp   california-web\n"
+                "california-api:latest   Up   0.0.0.0:8000->8000/tcp   california-api\n"
+                "postgres:13             Up   0.0.0.0:5432->5432/tcp   california-db"
+            ),
+            "containers": [
+                {"name": "california-web", "status": "running", "ports": ["3000:3000"], "uptime": "2 minutes"},
+                {"name": "california-api", "status": "running", "ports": ["8000:8000"], "uptime": "2 minutes"},
+                {"name": "california-db", "status": "running", "ports": ["5432:5432"], "uptime": "2 minutes"}
+            ]
+        }
 
     # California Project methods
     @staticmethod
@@ -905,4 +922,154 @@ class DockerRepository:
 </body>
 </html>
             """
+        }
+
+
+def _display_timestamp(iso_date: str, clock: str) -> str:
+    moment = datetime.strptime(f"{iso_date} {clock}", "%Y-%m-%d %H:%M:%S")
+    hour = moment.strftime("%I").lstrip("0")
+    return f"{moment.strftime('%b')} {moment.day}, {moment.year}, {hour}:{moment.strftime('%M:%S %p')}"
+
+
+def _message(iso_date: str, clock: str, sender: str, recipient: str, modem_id: str, message: str, box_id: str) -> dict:
+    return {
+        "timestamp": _display_timestamp(iso_date, clock),
+        "loggedAt": iso_date,
+        "from": sender,
+        "to": recipient,
+        "modemId": modem_id,
+        "message": message,
+        "boxId": box_id,
+    }
+
+
+CORP_BOXES = [
+    {
+        "id": "corp-01-max-z",
+        "name": "corp-01-max-z",
+        "slots": [
+            {"id": "slot-1", "name": "Slot 1", "phoneNumbers": ["(415) 555-1001", "(415) 555-1002", "(415) 555-1003"]},
+            {"id": "slot-2", "name": "Slot 2", "phoneNumbers": ["(628) 555-2001", "(628) 555-2002", "(628) 555-2003"]},
+            {"id": "slot-3", "name": "Slot 3", "phoneNumbers": ["(510) 555-3001", "(510) 555-3002", "(510) 555-3003"]},
+        ],
+    },
+    {
+        "id": "corp-02-max-x",
+        "name": "corp-02-max-x",
+        "slots": [
+            {"id": "slot-1", "name": "Slot 1", "phoneNumbers": ["(512) 555-4001", "(512) 555-4002", "(512) 555-4003"]},
+            {"id": "slot-2", "name": "Slot 2", "phoneNumbers": ["(737) 555-5001", "(737) 555-5002", "(737) 555-5003"]},
+            {"id": "slot-3", "name": "Slot 3", "phoneNumbers": ["(210) 555-6001", "(210) 555-6002", "(210) 555-6003"]},
+        ],
+    },
+]
+
+CORP_MESSAGES = [
+    _message("2026-11-09", "09:14:02", "(415) 555-1001", "(202) 555-0199", "modem.01", "Order confirmation #4708", "corp-01-max-z"),
+    _message("2026-11-08", "10:03:18", "(512) 555-4001", "(214) 555-0160", "modem.01", "Order confirmation #6987", "corp-02-max-x"),
+    _message("2026-11-06", "14:22:11", "(628) 555-2001", "(303) 555-0172", "modem.02", "Payment received $6128", "corp-01-max-z"),
+    _message("2026-11-03", "13:47:29", "(737) 555-5001", "(737) 555-0194", "modem.02", "Payment received $8619", "corp-02-max-x"),
+    _message("2026-10-28", "11:05:44", "(510) 555-3001", "(646) 555-0133", "modem.03", "Verification code #4015", "corp-01-max-z"),
+    _message("2026-10-21", "17:18:03", "(210) 555-6001", "(469) 555-0117", "modem.03", "Verification code #8831", "corp-02-max-x"),
+    _message("2026-10-12", "16:41:09", "(415) 555-1002", "(702) 555-0188", "modem.01", "Shipment update #2281", "corp-01-max-z"),
+    _message("2026-10-02", "09:55:40", "(512) 555-4002", "(972) 555-0149", "modem.01", "Delivery window confirmed", "corp-02-max-x"),
+    _message("2026-09-30", "08:12:55", "(628) 555-2002", "(917) 555-0104", "modem.02", "Appointment reminder", "corp-01-max-z"),
+    _message("2026-09-18", "15:26:12", "(737) 555-5002", "(210) 555-0175", "modem.02", "Support ticket #5520", "corp-02-max-x"),
+]
+
+MODEM_IDS = {
+    "slot-1": "modem.01",
+    "slot-2": "modem.02",
+    "slot-3": "modem.03",
+}
+
+
+def serialize_webhook(webhook) -> dict:
+    if isinstance(webhook, dict):
+        data = dict(webhook)
+    else:
+        data = {
+            "id": webhook.id,
+            "url": webhook.url,
+            "level": webhook.level,
+            "type": webhook.type,
+            "format": webhook.format,
+            "controller": webhook.controller,
+            "createdAt": getattr(webhook, "createdAt", None),
+        }
+
+    created_at = data.get("createdAt")
+    if hasattr(created_at, "isoformat"):
+        data["createdAt"] = created_at.isoformat()
+    elif created_at is None:
+        data["createdAt"] = ""
+    return data
+
+
+class CorpRepository:
+    @staticmethod
+    async def get_boxes():
+        return CORP_BOXES
+
+    @staticmethod
+    async def get_messages():
+        return CORP_MESSAGES
+
+    @staticmethod
+    async def list_webhooks():
+        if not hasattr(prisma, "webhook"):
+            raise RuntimeError("Prisma client is missing the Webhook model. Run prisma generate, then prisma db push.")
+
+        webhooks = await prisma.webhook.find_many()
+        webhooks = sorted(webhooks, key=lambda item: getattr(item, "createdAt", None) or "", reverse=True)
+        return [serialize_webhook(webhook) for webhook in webhooks]
+
+    @staticmethod
+    async def create_webhook(webhook_data: dict):
+        if not hasattr(prisma, "webhook"):
+            raise RuntimeError("Prisma client is missing the Webhook model. Run prisma generate, then prisma db push.")
+
+        webhook = await prisma.webhook.create(data=webhook_data)
+        return serialize_webhook(webhook)
+
+    @staticmethod
+    async def send_sms_demo(from_number: str, to_number: str, message: str, box_id: str, slot_id: str):
+        box = next((item for item in CORP_BOXES if item["id"] == box_id), None)
+        if not box:
+            raise ValueError("Select a box before sending.")
+
+        slot = next((item for item in box["slots"] if item["id"] == slot_id), None)
+        if not slot:
+            raise ValueError("Select a slot before sending.")
+
+        if from_number not in slot["phoneNumbers"]:
+            raise ValueError("Choose a from number on the selected slot.")
+
+        if not to_number.strip() or not message.strip():
+            raise ValueError("Enter a recipient number and a message.")
+
+        now = datetime.now()
+        logged_at = now.strftime("%Y-%m-%d")
+        receipt = {
+            "from": from_number,
+            "to": to_number.strip(),
+            "message": message.strip(),
+            "boxName": box["name"],
+            "slotName": slot["name"],
+            "note": "This is a UI demonstration. No SMS was sent.",
+        }
+        message_log = {
+            "timestamp": _display_timestamp(logged_at, now.strftime("%H:%M:%S")),
+            "loggedAt": logged_at,
+            "from": from_number,
+            "to": to_number.strip(),
+            "modemId": MODEM_IDS.get(slot_id, "modem.01"),
+            "message": message.strip(),
+            "boxId": box_id,
+        }
+        return {
+            "success": True,
+            "message": receipt["note"],
+            "receipt": receipt,
+            "messageLog": message_log,
         }
